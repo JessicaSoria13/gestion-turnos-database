@@ -33,7 +33,6 @@ CREATE TABLE usuario (
     CONSTRAINT fk_paciente_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
-<<<<<<< HEAD
 
 
 CREATE TABLE turno (
@@ -62,7 +61,6 @@ CREATE TABLE consulta_medica (
     CONSTRAINT fk_consulta_turno
         FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
 );
-=======
     
     CREATE TABLE medico (
     id_medico SERIAL NOT NULL,
@@ -81,4 +79,3 @@ CREATE TABLE disponibilidad (
     CONSTRAINT fk_disponibilidad_medico
         FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
 );
->>>>>>> 441533075f9f0961960a8557754f4b366bcafd3a

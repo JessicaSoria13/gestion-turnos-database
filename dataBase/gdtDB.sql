@@ -12,6 +12,7 @@ CREATE DATABASE "gestionDeTurnos"
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
+<<<<<<< HEAD
 
 CREATE TABLE usuario (
     id_usuario   INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -33,3 +34,13 @@ CREATE TABLE usuario (
     CONSTRAINT fk_paciente_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
+=======
+    
+    CREATE TABLE medico (
+    id_medico SERIAL NOT NULL,
+    nombre_apellido VARCHAR(100) NOT NULL,
+    especialidad VARCHAR(100),
+    matricula VARCHAR(50),
+    PRIMARY KEY (id_medico)
+);
+>>>>>>> feature/jessica

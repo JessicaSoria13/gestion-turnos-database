@@ -12,3 +12,11 @@ CREATE DATABASE "gestionDeTurnos"
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
+    
+    CREATE TABLE medico (
+    id_medico SERIAL NOT NULL,
+    nombre_apellido VARCHAR(100) NOT NULL,
+    especialidad VARCHAR(100),
+    matricula VARCHAR(50),
+    PRIMARY KEY (id_medico)
+);

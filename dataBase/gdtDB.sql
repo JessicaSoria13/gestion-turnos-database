@@ -70,3 +70,30 @@ CREATE TABLE cobertura (
     CONSTRAINT fk_cobertura_obra_social
         FOREIGN KEY (id_obra_social) REFERENCES obra_social(id_obra_social)
 );
+
+CREATE TABLE turno (
+    id_turno     INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_paciente  INT          NOT NULL,
+    id_medico    INT          NOT NULL,
+    id_cobertura INT,
+    fecha_hora   TIMESTAMP    NOT NULL,
+    estado       VARCHAR(20)  NOT NULL DEFAULT 'pendiente',
+    motivo       VARCHAR(255),
+    PRIMARY KEY (id_turno),
+    CONSTRAINT fk_turno_paciente
+        FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
+    CONSTRAINT fk_turno_medico
+        FOREIGN KEY (id_medico) REFERENCES medico(id_medico),
+    CONSTRAINT fk_turno_cobertura
+        FOREIGN KEY (id_cobertura) REFERENCES cobertura(id_cobertura)
+);
+
+CREATE TABLE consulta_medica (
+    id_consulta    INT      NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_turno       INT      NOT NULL UNIQUE,
+    observaciones  TEXT,
+    fecha_hora     TIMESTAMP NOT NULL,
+    PRIMARY KEY (id_consulta),
+    CONSTRAINT fk_consulta_turno
+        FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
+);

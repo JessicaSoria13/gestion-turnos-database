@@ -13,13 +13,9 @@ CREATE DATABASE "gestionDeTurnos"
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-    CREATE TABLE diagnostico (
-    id_diagnostico  SERIAL  NOT NULL,
-    id_consulta     INT     NOT NULL,
-    descripcion     TEXT    NOT NULL,
-    PRIMARY KEY (id_diagnostico),
-    CONSTRAINT fk_diagnostico_consulta
-        FOREIGN KEY (id_consulta) REFERENCES consulta_medica(id_consulta)
+    
+
+
 CREATE TABLE usuario (
     id_usuario   INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
     dni          VARCHAR(20)  NOT NULL UNIQUE,
@@ -103,4 +99,21 @@ CREATE TABLE consulta_medica (
     PRIMARY KEY (id_consulta),
     CONSTRAINT fk_consulta_turno
         FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
+);
+CREATE TABLE diagnostico (
+    id_diagnostico  SERIAL  NOT NULL,
+    id_consulta     INT     NOT NULL,
+    descripcion     TEXT    NOT NULL,
+    PRIMARY KEY (id_diagnostico),
+    CONSTRAINT fk_diagnostico_consulta
+        FOREIGN KEY (id_consulta) REFERENCES consulta_medica(id_consulta)
+);
+CREATE TABLE tratamiento (
+    id_tratamiento  SERIAL      NOT NULL,
+    id_diagnostico  INT         NOT NULL,
+    descripcion     TEXT        NOT NULL,
+    estado          VARCHAR(20),
+    PRIMARY KEY (id_tratamiento),
+    CONSTRAINT fk_tratamiento_diagnostico
+        FOREIGN KEY (id_diagnostico) REFERENCES diagnostico(id_diagnostico)
 );

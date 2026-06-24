@@ -21,3 +21,26 @@ CREATE DATABASE "gestionDeTurnos"
     CONSTRAINT fk_diagnostico_consulta
         FOREIGN KEY (id_consulta) REFERENCES consulta_medica(id_consulta)
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

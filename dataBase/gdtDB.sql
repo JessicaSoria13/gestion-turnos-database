@@ -13,17 +13,22 @@ CREATE DATABASE "gestionDeTurnos"
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-    
+    CREATE TABLE rol (
+        id_rol       INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
+        descripcion  VARCHAR(20)  NOT NULL UNIQUE,
+        PRIMARY KEY (id_rol),
+        CONSTRAINT chk_rol_descripcion
+            CHECK (descripcion IN ('SECRETARIA', 'MEDICO', 'PACIENTE', 'ADMINISTRADOR'))
+    );
 
-
-CREATE TABLE usuario (
-    id_usuario   INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
-    dni          VARCHAR(20)  NOT NULL UNIQUE,
-    contrasena   VARCHAR(255) NOT NULL,
-    rol          VARCHAR(20)  NOT NULL,
-    PRIMARY KEY (id_usuario),
-    CONSTRAINT chk_rol CHECK (rol IN ('SECRETARIA', 'MEDICO', 'PACIENTE', 'ADMINISTRADOR'))
-);
+    CREATE TABLE usuario (
+        id_usuario   INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
+        dni          VARCHAR(20)  NOT NULL UNIQUE,
+        contrasena   VARCHAR(255) NOT NULL,
+        id_rol       INT          NOT NULL,
+        PRIMARY KEY (id_usuario),
+        FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
+    );
 
     CREATE TABLE paciente (
     id_paciente      INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -35,7 +40,7 @@ CREATE TABLE usuario (
     PRIMARY KEY (id_paciente),
     CONSTRAINT fk_paciente_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-);
+    );
     
     CREATE TABLE medico (
     id_medico SERIAL NOT NULL,

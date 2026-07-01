@@ -26,6 +26,7 @@ CREATE DATABASE "gestionDeTurnos"
         dni          VARCHAR(20)  NOT NULL UNIQUE,
         contrasena   VARCHAR(255) NOT NULL,
         id_rol       INT          NOT NULL,
+        activo       BOOLEAN NOT NULL DEFAULT TRUE,
         PRIMARY KEY (id_usuario),
         FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
     );
@@ -37,6 +38,7 @@ CREATE DATABASE "gestionDeTurnos"
     nombre_apellido  VARCHAR(100) NOT NULL,
     email            VARCHAR(100),
     celular          VARCHAR(20),
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_paciente),
     CONSTRAINT fk_paciente_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
@@ -47,6 +49,7 @@ CREATE DATABASE "gestionDeTurnos"
     nombre_apellido VARCHAR(100) NOT NULL,
     especialidad VARCHAR(100),
     matricula VARCHAR(50),
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_medico)
 );
 CREATE TABLE disponibilidad (
@@ -55,6 +58,8 @@ CREATE TABLE disponibilidad (
     dia_semana         VARCHAR(20) NOT NULL,
     hora_inicio        TIME        NOT NULL,
     hora_fin           TIME        NOT NULL,
+    duracion_turno      INTERVAL    NOT NULL,
+    activo             BOOLEAN     NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_disponibilidad),
     CONSTRAINT fk_disponibilidad_medico
         FOREIGN KEY (id_medico) REFERENCES medico(id_medico)

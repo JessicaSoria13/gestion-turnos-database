@@ -1,129 +1,58 @@
--- Database: gestionDeTurnos
+-- ============================================================
+-- SISTEMA DE GESTIÓN DE TURNOS MÉDICOS
+-- Script de creación de base de datos - PostgreSQL
+-- ============================================================
+-- Ejecutar primero (conectado a la base "postgres"):
+--   CREATE DATABASE turnos_medicos WITH ENCODING 'UTF8';
+-- Luego conectarse a turnos_medicos y ejecutar el resto.
+-- ============================================================
 
--- DROP DATABASE IF EXISTS "gestionDeTurnos";
+-- ------------------------------------------------------------
+-- TIPOS ENUMERADOS
+-- ------------------------------------------------------------
+-- Todo médico es administrador del sistema: el rol define
+-- permisos de acceso, y la condición de médico se determina
+-- por la existencia de una fila en la tabla medico.
+CREATE TYPE rol_usuario AS ENUM ('ADMINISTRADOR', 'PACIENTE');
 
-CREATE DATABASE "gestionDeTurnos"
-    WITH
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'Spanish_Bolivia.1252'
-    LC_CTYPE = 'Spanish_Bolivia.1252'
-    LOCALE_PROVIDER = 'libc'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1
-    IS_TEMPLATE = False;
+CREATE TYPE dia_semana AS ENUM ('LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO');
 
-    CREATE TABLE rol (
-        id_rol       INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
-        descripcion  VARCHAR(20)  NOT NULL UNIQUE,
-        PRIMARY KEY (id_rol),
-        CONSTRAINT chk_rol_descripcion
-            CHECK (descripcion IN ('SECRETARIA', 'MEDICO', 'PACIENTE', 'ADMINISTRADOR'))
-    );
+-- El turno nace CONFIRMADO: el paciente reserva directamente
+-- sobre un horario validado como libre, sin instancia de
+-- aprobación intermedia.
+CREATE TYPE estado_turno AS ENUM ('CONFIRMADO', 'CANCELADO', 'ATENDIDO');
 
-    CREATE TABLE usuario (
-        id_usuario   INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
-        dni          VARCHAR(20)  NOT NULL UNIQUE,
-        contrasena   VARCHAR(255) NOT NULL,
-        id_rol       INT          NOT NULL,
-        activo       BOOLEAN NOT NULL DEFAULT TRUE,
-        PRIMARY KEY (id_usuario),
-        FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
-    );
+CREATE TYPE estado_financiador AS ENUM ('ACTIVO', 'INACTIVO');
 
-    CREATE TABLE paciente (
-    id_paciente      INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
-    id_usuario       INT          NOT NULL,
-    dni              VARCHAR(20)  NOT NULL UNIQUE,
+CREATE TYPE estado_tratamiento AS ENUM ('EN_CURSO', 'FINALIZADO', 'SUSPENDIDO');
+
+-- ------------------------------------------------------------
+-- 1. USUARIO
+-- Credenciales de acceso al sistema.
+-- ------------------------------------------------------------
+CREATE TABLE usuario (
+    id_usuario      INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    dni             VARCHAR(10)  NOT NULL UNIQUE,
+    contrasena      VARCHAR(255) NOT NULL,
+    rol             rol_usuario  NOT NULL,
+    activo          BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+-- ------------------------------------------------------------
+-- 2. PACIENTE
+-- id_usuario NOT NULL: todo paciente debe estar registrado,
+-- ya que él mismo solicita sus turnos. Si el usuario se da de
+-- baja, pasa a activo=false pero el registro persiste, por lo
+-- que el paciente conserva su historial.
+-- ------------------------------------------------------------
+CREATE TABLE paciente (
+    id_paciente      INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario       INTEGER      NOT NULL UNIQUE REFERENCES usuario (id_usuario),
     nombre_apellido  VARCHAR(100) NOT NULL,
+    dni              VARCHAR(10)  NOT NULL UNIQUE,
+    fecha_nacimiento DATE         NOT NULL,
     email            VARCHAR(100),
     celular          VARCHAR(20),
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (id_paciente),
-    CONSTRAINT fk_paciente_usuario
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-    );
-    
-    CREATE TABLE medico (
-    id_medico SERIAL NOT NULL,
-    nombre_apellido VARCHAR(100) NOT NULL,
-    especialidad VARCHAR(100),
-    matricula VARCHAR(50),
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (id_medico)
-);
-CREATE TABLE disponibilidad (
-    id_disponibilidad  SERIAL      NOT NULL,
-    id_medico          INT         NOT NULL,
-    dia_semana         VARCHAR(20) NOT NULL,
-    hora_inicio        TIME        NOT NULL,
-    hora_fin           TIME        NOT NULL,
-    duracion_turno      INTERVAL    NOT NULL,
-    activo             BOOLEAN     NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (id_disponibilidad),
-    CONSTRAINT fk_disponibilidad_medico
-        FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
-);
-
-CREATE TABLE obra_social (
-    id_obra_social  SERIAL       PRIMARY KEY,
-    nombre          VARCHAR(100) NOT NULL,
-    estado          VARCHAR(20)
-);
-
-CREATE TABLE cobertura (
-    id_cobertura    SERIAL      PRIMARY KEY,
-    id_paciente     INT         NOT NULL,
-    id_obra_social  INT,
-    num_afiliado    VARCHAR(50),
-    plan            VARCHAR(50),
-    tiene_cobertura BOOLEAN     NOT NULL DEFAULT FALSE,
-    CONSTRAINT fk_cobertura_paciente
-        FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
-    CONSTRAINT fk_cobertura_obra_social
-        FOREIGN KEY (id_obra_social) REFERENCES obra_social(id_obra_social)
-);
-
-CREATE TABLE turno (
-    id_turno     INT          NOT NULL GENERATED ALWAYS AS IDENTITY,
-    id_paciente  INT          NOT NULL,
-    id_medico    INT          NOT NULL,
-    id_cobertura INT,
-    fecha_hora   TIMESTAMP    NOT NULL,
-    estado       VARCHAR(20)  NOT NULL DEFAULT 'pendiente',
-    motivo       VARCHAR(255),
-    PRIMARY KEY (id_turno),
-    CONSTRAINT fk_turno_paciente
-        FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
-    CONSTRAINT fk_turno_medico
-        FOREIGN KEY (id_medico) REFERENCES medico(id_medico),
-    CONSTRAINT fk_turno_cobertura
-        FOREIGN KEY (id_cobertura) REFERENCES cobertura(id_cobertura)
-);
-
-CREATE TABLE consulta_medica (
-    id_consulta    INT      NOT NULL GENERATED ALWAYS AS IDENTITY,
-    id_turno       INT      NOT NULL UNIQUE,
-    observaciones  TEXT,
-    fecha_hora     TIMESTAMP NOT NULL,
-    PRIMARY KEY (id_consulta),
-    CONSTRAINT fk_consulta_turno
-        FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
-);
-CREATE TABLE diagnostico (
-    id_diagnostico  SERIAL  NOT NULL,
-    id_consulta     INT     NOT NULL,
-    descripcion     TEXT    NOT NULL,
-    PRIMARY KEY (id_diagnostico),
-    CONSTRAINT fk_diagnostico_consulta
-        FOREIGN KEY (id_consulta) REFERENCES consulta_medica(id_consulta)
-);
-CREATE TABLE tratamiento (
-    id_tratamiento  SERIAL      NOT NULL,
-    id_diagnostico  INT         NOT NULL,
-    descripcion     TEXT        NOT NULL,
-    estado          VARCHAR(20),
-    PRIMARY KEY (id_tratamiento),
-    CONSTRAINT fk_tratamiento_diagnostico
-        FOREIGN KEY (id_diagnostico) REFERENCES diagnostico(id_diagnostico)
+    domicilio        VARCHAR(150),
+    activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );

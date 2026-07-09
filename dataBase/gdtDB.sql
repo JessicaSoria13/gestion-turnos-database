@@ -98,3 +98,48 @@ CREATE TABLE financiador (
     cuit           VARCHAR(13),
     estado         estado_financiador NOT NULL DEFAULT 'ACTIVO'
 );
+
+-- ------------------------------------------------------------
+-- 6. COBERTURA
+-- Relación paciente <-> financiador (afiliación).
+-- ------------------------------------------------------------
+CREATE TABLE cobertura (
+    id_cobertura    INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_paciente     INTEGER     NOT NULL REFERENCES paciente (id_paciente),
+    id_financiador  INTEGER     NOT NULL REFERENCES financiador (id_financiador),
+    numero_afiliado VARCHAR(30) NOT NULL,
+    plan            VARCHAR(50),
+    activo          BOOLEAN     NOT NULL DEFAULT TRUE,
+    CONSTRAINT uq_cobertura UNIQUE (id_paciente, id_financiador, numero_afiliado)
+);
+
+-- ------------------------------------------------------------
+-- 7. TURNO
+-- id_disponibilidad garantiza que el horario provenga de un
+-- bloque válido del médico. id_cobertura NULL = atención
+-- particular. Nunca se eliminan: la cancelación es por estado.
+-- ------------------------------------------------------------
+CREATE TABLE turno (
+    id_turno           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_paciente        INTEGER      NOT NULL REFERENCES paciente (id_paciente),
+    id_medico          INTEGER      NOT NULL REFERENCES medico (id_medico),
+    id_disponibilidad  INTEGER      NOT NULL REFERENCES disponibilidad (id_disponibilidad),
+    id_cobertura       INTEGER      REFERENCES cobertura (id_cobertura),
+    fecha              DATE         NOT NULL,
+    hora               TIME         NOT NULL,
+    estado             estado_turno NOT NULL DEFAULT 'CONFIRMADO',
+    motivo_consulta    VARCHAR(255),
+    motivo_cancelacion VARCHAR(255),
+    CONSTRAINT uq_turno_medico_horario UNIQUE (id_medico, fecha, hora)
+);
+
+-- ------------------------------------------------------------
+-- 8. CONSULTA_MEDICA
+-- Relación 1 a 1 con turno (id_turno UNIQUE). No almacena
+-- fecha_hora propia: la fecha y hora surgen del turno.
+-- ------------------------------------------------------------
+CREATE TABLE consulta_medica (
+    id_consulta   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_turno      INTEGER NOT NULL UNIQUE REFERENCES turno (id_turno),
+    observaciones TEXT
+);

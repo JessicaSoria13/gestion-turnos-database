@@ -143,3 +143,61 @@ CREATE TABLE consulta_medica (
     id_turno      INTEGER NOT NULL UNIQUE REFERENCES turno (id_turno),
     observaciones TEXT
 );
+
+-- ------------------------------------------------------------
+-- 9. DIAGNOSTICO
+-- Una consulta puede derivar en uno o varios diagnósticos.
+-- ------------------------------------------------------------
+CREATE TABLE diagnostico (
+    id_diagnostico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_consulta    INTEGER NOT NULL REFERENCES consulta_medica (id_consulta),
+    descripcion    TEXT    NOT NULL
+);
+
+-- ------------------------------------------------------------
+-- 10. TRATAMIENTO
+-- Un diagnóstico puede derivar en uno o varios tratamientos.
+-- ------------------------------------------------------------
+CREATE TABLE tratamiento (
+    id_tratamiento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_diagnostico INTEGER            NOT NULL REFERENCES diagnostico (id_diagnostico),
+    descripcion    TEXT               NOT NULL,
+    duracion       VARCHAR(50),
+    estado         estado_tratamiento NOT NULL DEFAULT 'EN_CURSO'
+);
+
+-- ------------------------------------------------------------
+-- ÍNDICES DE APOYO
+-- Para las consultas más frecuentes (agenda y cálculo de
+-- horarios disponibles).
+-- ------------------------------------------------------------
+CREATE INDEX idx_turno_medico_fecha      ON turno (id_medico, fecha);
+CREATE INDEX idx_turno_paciente          ON turno (id_paciente);
+CREATE INDEX idx_disponibilidad_medico   ON disponibilidad (id_medico, dia_semana);
+CREATE INDEX idx_cobertura_paciente      ON cobertura (id_paciente);
+
+-- ------------------------------------------------------------
+-- DATOS DE PRUEBA
+-- ------------------------------------------------------------
+-- rol ADMINISTRADOR: todo médico es
+-- administrador del sistema.
+INSERT INTO usuario (dni, contrasena, rol) VALUES
+('30111222', '$2a$10$hashDeEjemplo1', 'ADMINISTRADOR'),
+('32111222', '$2a$10$hashDeEjemplo2', 'PACIENTE');
+
+INSERT INTO medico (id_usuario, nombre_apellido, dni, matricula, especialidad) VALUES
+(1, 'Dra. Ana López', '30111222', 'MP-12345', 'Clínica Médica');
+
+INSERT INTO paciente (id_usuario, nombre_apellido, dni, fecha_nacimiento, email, celular) VALUES
+(2, 'Juan Pérez', '32111222', '1990-02-15', 'juan@gmail.com', '1122334455');
+
+INSERT INTO financiador (nombre, cuit) VALUES
+('IOMA', '30-99999999-9'),
+('OSDE', '30-88888888-8');
+
+INSERT INTO cobertura (id_paciente, id_financiador, numero_afiliado, plan) VALUES
+(1, 2, '123456789', '210');
+
+INSERT INTO disponibilidad (id_medico, dia_semana, hora_inicio, hora_fin, duracion_turno_min) VALUES
+(1, 'LUNES',     '09:00', '17:00', 30),
+(1, 'MIERCOLES', '09:00', '13:00', 30);

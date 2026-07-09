@@ -56,3 +56,45 @@ CREATE TABLE paciente (
     domicilio        VARCHAR(150),
     activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );
+
+-- ------------------------------------------------------------
+-- 3. MEDICO
+-- id_usuario NOT NULL: el médico debe poder autenticarse.
+-- ------------------------------------------------------------
+CREATE TABLE medico (
+    id_medico        INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario       INTEGER      NOT NULL UNIQUE REFERENCES usuario (id_usuario),
+    nombre_apellido  VARCHAR(100) NOT NULL,
+    dni              VARCHAR(10)  NOT NULL UNIQUE,
+    matricula        VARCHAR(20)  NOT NULL UNIQUE,
+    especialidad     VARCHAR(100) NOT NULL,
+    activo           BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+-- ------------------------------------------------------------
+-- 4. DISPONIBILIDAD
+-- Reglas semanales recurrentes. Los horarios puntuales se
+-- calculan dinámicamente; no se almacenan slots.
+-- ------------------------------------------------------------
+CREATE TABLE disponibilidad (
+    id_disponibilidad  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_medico          INTEGER    NOT NULL REFERENCES medico (id_medico),
+    dia_semana         dia_semana NOT NULL,
+    hora_inicio        TIME       NOT NULL,
+    hora_fin           TIME       NOT NULL,
+    duracion_turno_min INTEGER    NOT NULL,
+    activo             BOOLEAN    NOT NULL DEFAULT TRUE,
+    CONSTRAINT chk_disp_horas    CHECK (hora_fin > hora_inicio),
+    CONSTRAINT chk_disp_duracion CHECK (duracion_turno_min > 0)
+);
+
+-- ------------------------------------------------------------
+-- 5. FINANCIADOR (Obra Social)
+-- La baja es lógica: estado = 'INACTIVO'.
+-- ------------------------------------------------------------
+CREATE TABLE financiador (
+    id_financiador INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre         VARCHAR(100)       NOT NULL UNIQUE,
+    cuit           VARCHAR(13),
+    estado         estado_financiador NOT NULL DEFAULT 'ACTIVO'
+);

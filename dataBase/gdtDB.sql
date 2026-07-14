@@ -167,10 +167,29 @@ CREATE TABLE tratamiento (
 );
 
 -- ------------------------------------------------------------
+-- 11. BLOQUEO
+-- Excepciones a la disponibilidad semanal: feriados, vacaciones,
+-- ausencias. Un rango de fechas donde el médico no atiende.
+-- El bloqueo tiene prioridad sobre la regla de disponibilidad.
+-- ------------------------------------------------------------
+CREATE TABLE bloqueo (
+    id_bloqueo   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_medico    INTEGER NOT NULL REFERENCES medico (id_medico),
+    fecha_desde  DATE    NOT NULL,
+    fecha_hasta  DATE    NOT NULL,
+    motivo       VARCHAR(100),
+    activo       BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT chk_bloqueo_rango CHECK (fecha_hasta >= fecha_desde)
+);
+
+
+-- ------------------------------------------------------------
 -- ÍNDICES DE APOYO
 -- Para las consultas más frecuentes (agenda y cálculo de
 -- horarios disponibles).
 -- ------------------------------------------------------------
+
+CREATE INDEX idx_bloqueo_medico_fechas ON bloqueo (id_medico, fecha_desde, fecha_hasta)
 CREATE INDEX idx_turno_medico_fecha      ON turno (id_medico, fecha);
 CREATE INDEX idx_turno_paciente          ON turno (id_paciente);
 CREATE INDEX idx_disponibilidad_medico   ON disponibilidad (id_medico, dia_semana);

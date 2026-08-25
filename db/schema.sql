@@ -1,6 +1,13 @@
 -- ============================================================
 -- SISTEMA DE GESTIÓN DE TURNOS MÉDICOS
--- Script de creación de base de datos - PostgreSQL
+-- Script de referencia del DER - PostgreSQL
+-- ============================================================
+-- ATENCIÓN: este script es SOLO REFERENCIA/documentación del
+-- modelo de datos (DER). NO se ejecuta contra la aplicación:
+-- las tablas reales las genera Hibernate a partir de las
+-- entidades JPA en backend/ (spring.jpa.hibernate.ddl-auto=update).
+-- Si necesitás crear la base desde cero, usá db/crear-base.sql
+-- y dejá que el backend levante el esquema al arrancar.
 -- ============================================================
 -- Ejecutar primero (conectado a la base "postgres"):
 --   CREATE DATABASE turnos_medicos WITH ENCODING 'UTF8';
@@ -21,8 +28,6 @@ CREATE TYPE dia_semana AS ENUM ('LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERN
 -- sobre un horario validado como libre, sin instancia de
 -- aprobación intermedia.
 CREATE TYPE estado_turno AS ENUM ('CONFIRMADO', 'CANCELADO', 'ATENDIDO');
-
-CREATE TYPE estado_financiador AS ENUM ('ACTIVO', 'INACTIVO');
 
 CREATE TYPE estado_tratamiento AS ENUM ('EN_CURSO', 'FINALIZADO', 'SUSPENDIDO');
 
@@ -60,6 +65,9 @@ CREATE TABLE paciente (
 -- ------------------------------------------------------------
 -- 3. MEDICO
 -- id_usuario NOT NULL: el médico debe poder autenticarse.
+-- NOTA: en la entidad JPA (backend), un médico puede tener
+-- varias especialidades: se modela como colección aparte
+-- (tabla medico_especialidad), no como esta columna única.
 -- ------------------------------------------------------------
 CREATE TABLE medico (
     id_medico        INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -89,18 +97,37 @@ CREATE TABLE disponibilidad (
 );
 
 -- ------------------------------------------------------------
--- 5. FINANCIADOR (Obra Social)
--- La baja es lógica: estado = 'INACTIVO'.
+-- 5. BLOQUEO
+-- Excepciones a la disponibilidad semanal: feriados, vacaciones,
+-- ausencias. Un rango de fechas donde el médico no atiende.
+-- El bloqueo tiene prioridad sobre la regla de disponibilidad.
+-- Al crearse, el sistema cancela automáticamente los turnos
+-- CONFIRMADO dentro del rango, propagando el motivo del bloqueo
+-- como motivo de cancelación (por eso motivo es NOT NULL).
 -- ------------------------------------------------------------
-CREATE TABLE financiador (
-    id_financiador INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre         VARCHAR(100)       NOT NULL UNIQUE,
-    cuit           VARCHAR(13),
-    estado         estado_financiador NOT NULL DEFAULT 'ACTIVO'
+CREATE TABLE bloqueo (
+    id_bloqueo   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_medico    INTEGER      NOT NULL REFERENCES medico (id_medico),
+    fecha_desde  DATE         NOT NULL,
+    fecha_hasta  DATE         NOT NULL,
+    motivo       VARCHAR(100) NOT NULL,
+    activo       BOOLEAN      NOT NULL DEFAULT TRUE,
+    CONSTRAINT chk_bloqueo_rango CHECK (fecha_hasta >= fecha_desde)
 );
 
 -- ------------------------------------------------------------
--- 6. COBERTURA
+-- 6. FINANCIADOR (Obra Social)
+-- Baja lógica unificada con el resto del sistema: activo = false.
+-- ------------------------------------------------------------
+CREATE TABLE financiador (
+    id_financiador INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre         VARCHAR(100) NOT NULL UNIQUE,
+    cuit           VARCHAR(13),
+    activo         BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+-- ------------------------------------------------------------
+-- 7. COBERTURA
 -- Relación paciente <-> financiador (afiliación).
 -- ------------------------------------------------------------
 CREATE TABLE cobertura (
@@ -114,10 +141,12 @@ CREATE TABLE cobertura (
 );
 
 -- ------------------------------------------------------------
--- 7. TURNO
+-- 8. TURNO
 -- id_disponibilidad garantiza que el horario provenga de un
 -- bloque válido del médico. id_cobertura NULL = atención
 -- particular. Nunca se eliminan: la cancelación es por estado.
+-- motivo_cancelacion se completa al cancelar (obligatorio si
+-- cancela el médico, directa o vía bloqueo).
 -- ------------------------------------------------------------
 CREATE TABLE turno (
     id_turno           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -134,7 +163,7 @@ CREATE TABLE turno (
 );
 
 -- ------------------------------------------------------------
--- 8. CONSULTA_MEDICA
+-- 9. CONSULTA_MEDICA
 -- Relación 1 a 1 con turno (id_turno UNIQUE). No almacena
 -- fecha_hora propia: la fecha y hora surgen del turno.
 -- ------------------------------------------------------------
@@ -145,7 +174,7 @@ CREATE TABLE consulta_medica (
 );
 
 -- ------------------------------------------------------------
--- 9. DIAGNOSTICO
+-- 10. DIAGNOSTICO
 -- Una consulta puede derivar en uno o varios diagnósticos.
 -- ------------------------------------------------------------
 CREATE TABLE diagnostico (
@@ -155,7 +184,7 @@ CREATE TABLE diagnostico (
 );
 
 -- ------------------------------------------------------------
--- 10. TRATAMIENTO
+-- 11. TRATAMIENTO
 -- Un diagnóstico puede derivar en uno o varios tratamientos.
 -- ------------------------------------------------------------
 CREATE TABLE tratamiento (
@@ -168,19 +197,19 @@ CREATE TABLE tratamiento (
 
 -- ------------------------------------------------------------
 -- ÍNDICES DE APOYO
--- Para las consultas más frecuentes (agenda y cálculo de
--- horarios disponibles).
+-- Para las consultas más frecuentes (agenda, cálculo de
+-- horarios disponibles y verificación de bloqueos).
 -- ------------------------------------------------------------
-CREATE INDEX idx_turno_medico_fecha      ON turno (id_medico, fecha);
-CREATE INDEX idx_turno_paciente          ON turno (id_paciente);
-CREATE INDEX idx_disponibilidad_medico   ON disponibilidad (id_medico, dia_semana);
-CREATE INDEX idx_cobertura_paciente      ON cobertura (id_paciente);
+CREATE INDEX idx_turno_medico_fecha     ON turno (id_medico, fecha);
+CREATE INDEX idx_turno_paciente         ON turno (id_paciente);
+CREATE INDEX idx_disponibilidad_medico  ON disponibilidad (id_medico, dia_semana);
+CREATE INDEX idx_bloqueo_medico_fechas  ON bloqueo (id_medico, fecha_desde, fecha_hasta);
+CREATE INDEX idx_cobertura_paciente     ON cobertura (id_paciente);
 
 -- ------------------------------------------------------------
 -- DATOS DE PRUEBA
 -- ------------------------------------------------------------
--- rol ADMINISTRADOR: todo médico es
--- administrador del sistema.
+-- rol ADMINISTRADOR: todo médico es administrador del sistema.
 INSERT INTO usuario (dni, contrasena, rol) VALUES
 ('30111222', '$2a$10$hashDeEjemplo1', 'ADMINISTRADOR'),
 ('32111222', '$2a$10$hashDeEjemplo2', 'PACIENTE');
@@ -201,3 +230,7 @@ INSERT INTO cobertura (id_paciente, id_financiador, numero_afiliado, plan) VALUE
 INSERT INTO disponibilidad (id_medico, dia_semana, hora_inicio, hora_fin, duracion_turno_min) VALUES
 (1, 'LUNES',     '09:00', '17:00', 30),
 (1, 'MIERCOLES', '09:00', '13:00', 30);
+
+-- Bloqueo de ejemplo: feriado de un día.
+INSERT INTO bloqueo (id_medico, fecha_desde, fecha_hasta, motivo) VALUES
+(1, '2026-12-25', '2026-12-25', 'Feriado - Navidad');

@@ -1,0 +1,11 @@
+-- ============================================================
+-- Datos de prueba (seed) - Sistema de Gestión de Turnos Médicos
+-- ============================================================
+-- Ejecutar contra la base turnos_medicos DESPUÉS de que el
+-- backend haya levantado el esquema al menos una vez
+-- (spring.jpa.hibernate.ddl-auto=update crea las tablas).
+--
+-- TODO: agregar INSERTs de prueba (usuario, medico, paciente,
+-- financiador, disponibilidad, etc.) una vez estabilizado el
+-- modelo de entidades.
+-- ============================================================

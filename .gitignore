@@ -1,0 +1,24 @@
+# Backend (Maven / Java)
+backend/target/
+*.class
+
+# Frontend (Node / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Configuración con credenciales reales
+backend/src/main/resources/application.properties
+.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Claude
+CLAUDE.local.md
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

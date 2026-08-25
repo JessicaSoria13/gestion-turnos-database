@@ -1,6 +1,13 @@
 -- ============================================================
 -- SISTEMA DE GESTIÓN DE TURNOS MÉDICOS
--- Script de creación de base de datos - PostgreSQL
+-- Script de referencia del DER - PostgreSQL
+-- ============================================================
+-- ATENCIÓN: este script es SOLO REFERENCIA/documentación del
+-- modelo de datos (DER). NO se ejecuta contra la aplicación:
+-- las tablas reales las genera Hibernate a partir de las
+-- entidades JPA en backend/ (spring.jpa.hibernate.ddl-auto=update).
+-- Si necesitás crear la base desde cero, usá db/crear-base.sql
+-- y dejá que el backend levante el esquema al arrancar.
 -- ============================================================
 -- Ejecutar primero (conectado a la base "postgres"):
 --   CREATE DATABASE turnos_medicos WITH ENCODING 'UTF8';
@@ -58,6 +65,9 @@ CREATE TABLE paciente (
 -- ------------------------------------------------------------
 -- 3. MEDICO
 -- id_usuario NOT NULL: el médico debe poder autenticarse.
+-- NOTA: en la entidad JPA (backend), un médico puede tener
+-- varias especialidades: se modela como colección aparte
+-- (tabla medico_especialidad), no como esta columna única.
 -- ------------------------------------------------------------
 CREATE TABLE medico (
     id_medico        INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

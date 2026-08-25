@@ -1,0 +1,21 @@
+# Copiar este archivo como application.properties y completar las
+# variables de entorno correspondientes (o exportarlas en el sistema).
+# NO commitear application.properties con credenciales reales.
+
+spring.application.name=backend
+server.port=${SERVER_PORT:8080}
+
+# Base de datos (PostgreSQL) - ver db/crear-base.sql
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/turnos_medicos}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+
+# Hibernate genera y actualiza el esquema a partir de las @Entity.
+# NO usar "create": borraria los datos existentes en cada arranque.
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# JWT (jjwt)
+jwt.secret=${JWT_SECRET}
+jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}

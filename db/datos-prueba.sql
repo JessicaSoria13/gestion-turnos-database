@@ -5,6 +5,17 @@
 -- haya levantado el esquema al menos una vez (spring.jpa.hibernate.ddl-auto=update
 -- crea las tablas a partir de las entidades JPA).
 --
+-- Idempotente: al arrancar trunca todas las tablas del dominio
+-- y reinicia los IDENTITY, así los IDs usados abajo (FKs
+-- hardcodeadas) son siempre predecibles.
+-- ============================================================
+-- ============================================================
+-- Datos de prueba (seed) - Sistema de Gestión de Turnos Médicos
+-- ============================================================
+-- Ejecutar contra la base turnos_medicos DESPUÉS de que el backend
+-- haya levantado el esquema al menos una vez (spring.jpa.hibernate.ddl-auto=update
+-- crea las tablas a partir de las entidades JPA).
+--
 -- Objetivo: que las 4 personas del equipo carguen EXACTAMENTE los
 -- mismos datos en su base LOCAL (no compartida). Como las tablas
 -- están vacías y los ID son autoincrementales, si todas ejecutan

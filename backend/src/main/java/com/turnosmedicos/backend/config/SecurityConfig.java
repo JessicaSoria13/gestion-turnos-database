@@ -25,7 +25,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        // TODO: restringir por rol cuando se agregue el filtro JWT (ver contexto.md, seccion 10).
                         .anyRequest().permitAll()
                 );
 

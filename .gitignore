@@ -19,6 +19,10 @@ backend/src/main/resources/application.properties
 # Claude
 CLAUDE.local.md
 
+# Documentación personal de Camila (no compartir con el equipo)
+README.md
+contexto.md
+
 # Sistema operativo
 .DS_Store
 Thumbs.db

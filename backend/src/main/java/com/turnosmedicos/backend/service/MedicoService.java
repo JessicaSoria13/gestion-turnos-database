@@ -5,6 +5,7 @@ import com.turnosmedicos.backend.dto.MedicoResponseDTO;
 import com.turnosmedicos.backend.entity.Disponibilidad;
 import com.turnosmedicos.backend.entity.Medico;
 import com.turnosmedicos.backend.entity.Turno;
+import com.turnosmedicos.backend.enums.DiaSemana;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.DisponibilidadRepository;
@@ -14,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -53,9 +53,11 @@ public class MedicoService {
                     throw new ConflictoException("Ya existe un médico con la matrícula '" + request.matricula() + "'");
                 });
 
-        medico.setNombre(request.nombre());
+        medico.setNombreApellido(request.nombre());
         medico.setMatricula(request.matricula());
-        medico.setEspecialidad(request.especialidad());
+        medico.setEspecialidades(request.especialidad() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(List.of(request.especialidad())));
 
         return toResponseDTO(medicoRepository.save(medico));
     }
@@ -67,15 +69,13 @@ public class MedicoService {
 
         buscarPorId(id);
 
-        // Si existe bloqueo activo para ese médico y esa fecha, devolvemos vacío
-        // if (bloqueoRepository.existsByMedicoIdAndFechaAndActivoTrue(id, fecha)) {
-        //     return List.of();
-        // }
+        // TODO (contexto.md seccion 9): si existe un bloqueo activo del medico que cubra
+        // esa fecha, devolver lista vacia. Requiere metodo por rango en BloqueoRepository.
 
-        DayOfWeek dia = fecha.getDayOfWeek();
+        DiaSemana dia = DiaSemana.values()[fecha.getDayOfWeek().getValue() - 1];
 
         List<Disponibilidad> disponibilidades = disponibilidadRepository
-                .findByMedicoIdAndDiaSemana(id, dia);
+                .findByMedicoIdAndDiaSemanaAndActivoTrue(id, dia);
 
         if (disponibilidades.isEmpty()) {
             return List.of();
@@ -92,12 +92,13 @@ public class MedicoService {
         for (Disponibilidad disponibilidad : disponibilidades) {
             LocalTime inicio = disponibilidad.getHoraInicio();
             LocalTime fin = disponibilidad.getHoraFin();
+            int paso = disponibilidad.getDuracionTurnoMin();
 
-            while (!inicio.isAfter(fin.minusMinutes(30))) {
+            while (!inicio.isAfter(fin.minusMinutes(paso))) {
                 if (!ocupados.contains(inicio)) {
                     horarios.add(inicio.format(DateTimeFormatter.ofPattern("HH:mm")));
                 }
-                inicio = inicio.plusMinutes(30);
+                inicio = inicio.plusMinutes(paso);
             }
         }
 
@@ -112,9 +113,9 @@ public class MedicoService {
     private MedicoResponseDTO toResponseDTO(Medico medico) {
         return new MedicoResponseDTO(
                 medico.getId(),
-                medico.getNombre(),
+                medico.getNombreApellido(),
                 medico.getMatricula(),
-                medico.getEspecialidad(),
+                medico.getEspecialidades().isEmpty() ? null : medico.getEspecialidades().get(0),
                 medico.getActivo()
         );
     }

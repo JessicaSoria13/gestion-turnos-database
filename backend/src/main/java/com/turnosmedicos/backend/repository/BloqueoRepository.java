@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface BloqueoRepository extends JpaRepository<Bloqueo, Integer> {
 
+    List<Bloqueo> findByActivoTrue();
+
     List<Bloqueo> findByMedicoIdAndActivoTrue(Integer medicoId);
+
 }

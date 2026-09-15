@@ -1,6 +1,25 @@
 package com.turnosmedicos.backend.service;
 
+import com.turnosmedicos.backend.dto.TurnoRequestDTO;
+import com.turnosmedicos.backend.dto.TurnoResponseDTO;
+import com.turnosmedicos.backend.entity.Cobertura;
+import com.turnosmedicos.backend.entity.Disponibilidad;
+import com.turnosmedicos.backend.entity.Medico;
+import com.turnosmedicos.backend.entity.Paciente;
+import com.turnosmedicos.backend.entity.Turno;
+import com.turnosmedicos.backend.exception.ConflictoException;
+import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
+import com.turnosmedicos.backend.repository.CoberturaRepository;
+import com.turnosmedicos.backend.repository.DisponibilidadRepository;
+import com.turnosmedicos.backend.repository.MedicoRepository;
+import com.turnosmedicos.backend.repository.PacienteRepository;
+import com.turnosmedicos.backend.repository.TurnoRepository;
+import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
+import com.turnosmedicos.backend.enums.EstadoTurno;
+import com.turnosmedicos.backend.exception.DatosInvalidosException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TurnoService {
@@ -21,5 +40,89 @@ public class TurnoService {
             this.medicoRepository = medicoRepository;
             this.disponibilidadRepository = disponibilidadRepository;
             this.coberturaRepository = coberturaRepository;
+    }
+
+    public List<TurnoResponseDTO> listar() {
+        return turnoRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
+    public TurnoResponseDTO obtenerPorId(Integer id) {
+        Turno turno = turnoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe turno con el id: " + id));
+        return toResponseDTO(turno);
+    }
+    public TurnoResponseDTO cancelar(Integer id, TurnoCancelacionRequestDTO request) {
+        Turno turno = turnoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe turno con el id: " + id));
+
+        if (turno.getEstado() != EstadoTurno.CONFIRMADO) {
+            throw new ConflictoException("Solo se puede cancelar un turno en estado CONFIRMADO");
+        }
+
+        if (request.canceladoPorMedico() && (request.motivoCancelacion() == null || request.motivoCancelacion().isBlank())) {
+            throw new DatosInvalidosException("El motivo de cancelación es obligatorio cuando cancela el médico");
+        }
+
+        turno.setEstado(EstadoTurno.CANCELADO);
+        turno.setMotivoCancelacion(request.motivoCancelacion());
+
+        return toResponseDTO(turnoRepository.save(turno));
+    }
+
+
+
+
+
+
+
+    public TurnoResponseDTO crear(TurnoRequestDTO request) {
+        Paciente paciente =pacienteRepository.findById(request.idPaciente())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe paciente con el id: " + request.idPaciente()));
+
+        Medico medico = medicoRepository.findById(request.idMedico())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe medico con el id: " + request.idMedico()));
+
+        Disponibilidad disponibilidad = disponibilidadRepository.findById(request.idDisponibilidad())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe disponibilidad con el id: " + request.idDisponibilidad()));
+
+        Cobertura cobertura = null;
+        if (request.idCobertura() != null) {
+            cobertura = coberturaRepository.findById(request.idCobertura())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("No existe cobertura: " + request.idCobertura()));
+        }
+
+        if (turnoRepository.existsByMedicoIdAndFechaAndHora(request.idMedico(), request.fecha(), request.hora())) {
+            throw new ConflictoException("El medico ya tiene turno asignado en ese horario");
+        }
+
+        Turno turno = Turno.builder()
+                .paciente(paciente)
+                .medico(medico)
+                .disponibilidad(disponibilidad)
+                .cobertura(cobertura)
+                .fecha(request.fecha())
+                .hora(request.hora())
+                .motivoConsulta(request.motivoConsulta())
+                .build();
+
+        return toResponseDTO(turnoRepository.save(turno));
+    }
+
+        private TurnoResponseDTO toResponseDTO(Turno turno) {
+        return new TurnoResponseDTO(
+                turno.getId(),
+                turno.getPaciente().getId(),
+                turno.getMedico().getId(),
+                turno.getDisponibilidad().getId(),
+                turno.getCobertura() != null ? turno.getCobertura().getId() : null,
+                turno.getFecha(),
+                turno.getHora(),
+                turno.getEstado(),
+                turno.getMotivoConsulta(),
+                turno.getMotivoCancelacion()
+        );
+
     }
 }

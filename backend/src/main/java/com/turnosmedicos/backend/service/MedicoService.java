@@ -8,6 +8,7 @@ import com.turnosmedicos.backend.entity.Turno;
 import com.turnosmedicos.backend.enums.DiaSemana;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
+import com.turnosmedicos.backend.repository.BloqueoRepository;
 import com.turnosmedicos.backend.repository.DisponibilidadRepository;
 import com.turnosmedicos.backend.repository.MedicoRepository;
 import com.turnosmedicos.backend.repository.TurnoRepository;
@@ -29,15 +30,18 @@ public class MedicoService {
     private final MedicoRepository medicoRepository;
     private final DisponibilidadRepository disponibilidadRepository;
     private final TurnoRepository turnoRepository;
+    private final BloqueoRepository bloqueoRepository;
 
     public MedicoService(
             MedicoRepository medicoRepository,
             DisponibilidadRepository disponibilidadRepository,
-            TurnoRepository turnoRepository
+            TurnoRepository turnoRepository,
+            BloqueoRepository bloqueoRepository
     ) {
         this.medicoRepository = medicoRepository;
         this.disponibilidadRepository = disponibilidadRepository;
         this.turnoRepository = turnoRepository;
+        this.bloqueoRepository = bloqueoRepository;
     }
 
     public MedicoResponseDTO obtenerPorId(Integer id) {
@@ -69,8 +73,11 @@ public class MedicoService {
 
         buscarPorId(id);
 
-        // TODO (contexto.md seccion 9): si existe un bloqueo activo del medico que cubra
-        // esa fecha, devolver lista vacia. Requiere metodo por rango en BloqueoRepository.
+        boolean bloqueado = bloqueoRepository
+                .existsByMedicoIdAndActivoTrueAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(id, fecha, fecha);
+        if (bloqueado) {
+            return List.of();
+        }
 
         DiaSemana dia = DiaSemana.values()[fecha.getDayOfWeek().getValue() - 1];
 

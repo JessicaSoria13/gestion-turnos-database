@@ -25,7 +25,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), "Conflicto", ex.getMessage()));
     }
-
+    @ExceptionHandler(DatosInvalidosException.class)
+    public ResponseEntity<ErrorResponse> handleDatosInvalidos(DatosInvalidosException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Datos inválidos", ex.getMessage()));
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidacion(MethodArgumentNotValidException ex) {
         List<String> detalles = ex.getBindingResult().getFieldErrors().stream()

@@ -6,6 +6,7 @@ import com.turnosmedicos.backend.service.DisponibilidadService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class DisponibilidadController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<DisponibilidadResponseDTO> listar(@RequestParam(required = false) Integer idMedico) {
         return idMedico != null
                 ? disponibilidadService.listarPorMedico(idMedico)
@@ -41,16 +43,19 @@ public class DisponibilidadController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<DisponibilidadResponseDTO> crear(@Valid @RequestBody DisponibilidadRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(disponibilidadService.crear(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public DisponibilidadResponseDTO actualizar(@PathVariable Integer id, @Valid @RequestBody DisponibilidadRequestDTO request) {
         return disponibilidadService.actualizar(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         disponibilidadService.eliminar(id);
         return ResponseEntity.noContent().build();

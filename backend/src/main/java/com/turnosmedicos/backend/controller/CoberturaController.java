@@ -6,6 +6,7 @@ import com.turnosmedicos.backend.service.CoberturaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class CoberturaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<CoberturaResponseDTO> listar(@RequestParam(required = false) Integer idPaciente) {
         return idPaciente != null
                 ? coberturaService.listarPorPaciente(idPaciente)

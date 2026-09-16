@@ -6,6 +6,7 @@ import com.turnosmedicos.backend.service.FinanciadorService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ public class FinanciadorController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<FinanciadorResponseDTO> listar() {
         return financiadorService.listarActivos();
     }
@@ -38,16 +40,19 @@ public class FinanciadorController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<FinanciadorResponseDTO> crear(@Valid @RequestBody FinanciadorRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(financiadorService.crear(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public FinanciadorResponseDTO actualizar(@PathVariable Integer id, @Valid @RequestBody FinanciadorRequestDTO request) {
         return financiadorService.actualizar(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         financiadorService.eliminar(id);
         return ResponseEntity.noContent().build();

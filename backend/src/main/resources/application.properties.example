@@ -19,3 +19,13 @@ spring.jpa.properties.hibernate.format_sql=true
 # JWT (jjwt)
 jwt.secret=${JWT_SECRET}
 jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}
+
+# Email (recuperacion de contrasena). Sin esto, POST /auth/recuperar-contrasena/solicitar
+# responde 500 al intentar enviar el correo. Con Gmail: generar una "contrasena de aplicacion"
+# en https://myaccount.google.com/apppasswords (no la contrasena normal de la cuenta).
+spring.mail.host=${MAIL_HOST:smtp.gmail.com}
+spring.mail.port=${MAIL_PORT:587}
+spring.mail.username=${MAIL_USERNAME}
+spring.mail.password=${MAIL_PASSWORD}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true

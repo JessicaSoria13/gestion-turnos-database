@@ -45,7 +45,7 @@ public class ConsultaMedicaService {
         if (consultaMedicaRepository.existsByTurnoId(request.idTurno())) {
             throw new ConflictoException("El turno ya tiene una consulta medica registrada");
         }
-        
+
         ConsultaMedica consulta = ConsultaMedica.builder()
                 .turno(turno)
                 .observaciones(request.observaciones())

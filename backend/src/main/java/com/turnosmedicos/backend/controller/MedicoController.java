@@ -26,7 +26,7 @@ public class MedicoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public MedicoResponseDTO actualizar(@PathVariable Integer id, @RequestBody MedicoRequestDTO request) {
         return medicoService.actualizar(id, request);
     }

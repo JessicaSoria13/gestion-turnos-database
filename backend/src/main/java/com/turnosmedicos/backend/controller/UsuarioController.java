@@ -7,6 +7,7 @@ import com.turnosmedicos.backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class UsuarioController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<UsuarioResponseDTO> listar() {
         return usuarioService.listarActivos();
     }
@@ -39,6 +41,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioResponseDTO> crear(@Valid @RequestBody UsuarioRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crear(request));
     }

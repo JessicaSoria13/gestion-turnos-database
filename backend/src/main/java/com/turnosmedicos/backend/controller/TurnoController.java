@@ -1,19 +1,20 @@
 package com.turnosmedicos.backend.controller;
 
+import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
 import com.turnosmedicos.backend.dto.TurnoRequestDTO;
 import com.turnosmedicos.backend.dto.TurnoResponseDTO;
 import com.turnosmedicos.backend.service.TurnoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
-import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class TurnoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<TurnoResponseDTO> listar() {
         return turnoService.listar();
     }
@@ -41,7 +43,6 @@ public class TurnoController {
     public TurnoResponseDTO cancelar(@PathVariable Integer id, @Valid @RequestBody TurnoCancelacionRequestDTO request) {
         return turnoService.cancelar(id, request);
     }
-
 
     @PostMapping
     public ResponseEntity<TurnoResponseDTO> crear(@Valid @RequestBody TurnoRequestDTO request){

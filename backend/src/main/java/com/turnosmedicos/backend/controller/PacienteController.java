@@ -6,6 +6,7 @@ import com.turnosmedicos.backend.service.PacienteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ public class PacienteController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<PacienteResponseDTO> listar() {
         return pacienteService.listarActivos();
     }
@@ -38,6 +40,7 @@ public class PacienteController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<PacienteResponseDTO> crear(@Valid @RequestBody PacienteRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pacienteService.crear(request));
     }
@@ -48,6 +51,7 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         pacienteService.eliminar(id);
         return ResponseEntity.noContent().build();

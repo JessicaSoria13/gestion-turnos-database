@@ -29,7 +29,6 @@ public class FinanciadorController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<FinanciadorResponseDTO> listar() {
         return financiadorService.listarActivos();
     }

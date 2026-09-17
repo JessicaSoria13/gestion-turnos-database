@@ -30,7 +30,6 @@ public class DisponibilidadController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<DisponibilidadResponseDTO> listar(@RequestParam(required = false) Integer idMedico) {
         return idMedico != null
                 ? disponibilidadService.listarPorMedico(idMedico)

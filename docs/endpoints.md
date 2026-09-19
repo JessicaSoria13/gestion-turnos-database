@@ -43,3 +43,44 @@ registro existente.
 |---|---|
 | 400 | Datos inválidos. |
 | 409 | Ya existe un usuario activo con ese DNI. |
+
+---
+
+## Tratamientos
+
+### `POST /api/v1/tratamientos`
+
+Registra un tratamiento asociado a un diagnóstico existente. El estado inicial se crea como
+`EN_CURSO` automáticamente.
+
+**Request Body**
+```json
+{
+  "idDiagnostico": 4,
+  "descripcion": "Paracetamol 500 mg cada 8 horas.",
+  "duracion": "5 días"
+}
+```
+
+**Response `201 Created`**
+```json
+{
+  "id": 1,
+  "idDiagnostico": 4,
+  "descripcion": "Paracetamol 500 mg cada 8 horas.",
+  "duracion": "5 días",
+  "estado": "EN_CURSO"
+}
+```
+
+**Consultas**
+- `GET /api/v1/tratamientos`: lista todos los tratamientos.
+- `GET /api/v1/tratamientos?idDiagnostico=4`: lista los tratamientos de un diagnóstico.
+- `GET /api/v1/tratamientos/{id}`: obtiene un tratamiento.
+- `PUT /api/v1/tratamientos/{id}`: actualiza diagnóstico, descripción y duración.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | `idDiagnostico` es obligatorio y `descripcion` no puede estar vacía. |
+| 404 | No existe el diagnóstico o tratamiento indicado. |

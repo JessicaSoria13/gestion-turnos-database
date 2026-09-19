@@ -107,7 +107,7 @@ INSERT INTO cobertura (id_paciente, id_financiador, numero_afiliado, plan, activ
 -- 8. TURNO
 -- Fechas elegidas para que coincidan con los días de la
 -- disponibilidad de arriba (LUNES / MIERCOLES):
---   - 2026-08-24 es LUNES (turno ya pasado, para probar consulta/diagnóstico)
+--   - 2026-08-24 es LUNES (turno ya pasado, para probar consulta/diagnóstico/tratamiento)
 --   - 2026-08-26 es MIERCOLES (turno cancelado, de ejemplo)
 --   - 2026-08-31 es LUNES (turnos futuros, para probar la agenda)
 -- ------------------------------------------------------------
@@ -128,3 +128,9 @@ INSERT INTO consulta_medica (id_turno, observaciones) VALUES
 -- ------------------------------------------------------------
 INSERT INTO diagnostico (id_consulta, descripcion) VALUES
 (1, 'Hipertensión arterial leve'); -- id_diagnostico = 1
+
+-- ------------------------------------------------------------
+-- 11. TRATAMIENTO
+-- ------------------------------------------------------------
+INSERT INTO tratamiento (id_diagnostico, descripcion, duracion, estado) VALUES
+(1, 'Enalapril 10mg, 1 comprimido por día', '3 meses', 'EN_CURSO'); -- id_tratamiento = 1

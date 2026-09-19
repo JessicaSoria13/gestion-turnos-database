@@ -12,4 +12,8 @@ public interface MedicoRepository extends JpaRepository<Medico, Integer> {
 
     Optional<Medico> findByMatricula(String matricula);
 
+    boolean existsByUsuarioId(Integer usuarioId);
+
+    boolean existsByDni(String dni);
+
 }

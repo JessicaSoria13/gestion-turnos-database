@@ -4,10 +4,13 @@ import com.turnosmedicos.backend.dto.BloqueoRequestDTO;
 import com.turnosmedicos.backend.dto.BloqueoResponseDTO;
 import com.turnosmedicos.backend.entity.Bloqueo;
 import com.turnosmedicos.backend.entity.Medico;
+import com.turnosmedicos.backend.entity.Turno;
+import com.turnosmedicos.backend.enums.EstadoTurno;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.BloqueoRepository;
 import com.turnosmedicos.backend.repository.MedicoRepository;
+import com.turnosmedicos.backend.repository.TurnoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +20,13 @@ public class BloqueoService {
 
     private final BloqueoRepository bloqueoRepository;
     private final MedicoRepository medicoRepository;
+    private final TurnoRepository turnoRepository;
 
-    public BloqueoService(BloqueoRepository bloqueoRepository, MedicoRepository medicoRepository) {
+    public BloqueoService(BloqueoRepository bloqueoRepository, MedicoRepository medicoRepository,
+                          TurnoRepository turnoRepository) {
         this.bloqueoRepository = bloqueoRepository;
         this.medicoRepository = medicoRepository;
+        this.turnoRepository = turnoRepository;
     }
 
     public List<BloqueoResponseDTO> listarActivos() {
@@ -57,9 +63,7 @@ public class BloqueoService {
 
         Bloqueo guardado = bloqueoRepository.save(bloqueo);
 
-        // TODO (regla 9, contexto.md): al crear el bloqueo se deben cancelar automáticamente
-        // los turnos CONFIRMADO del médico cuya fecha caiga en [fechaDesde, fechaHasta],
-        // propagando `motivo` como motivoCancelacion. Se implementa cuando exista el módulo Turno.
+        cancelarTurnosDelRango(guardado);
 
         return toResponseDTO(guardado);
     }
@@ -84,6 +88,18 @@ public class BloqueoService {
         Bloqueo bloqueo = buscarPorId(id);
         bloqueo.setActivo(false);
         bloqueoRepository.save(bloqueo);
+    }
+
+    private void cancelarTurnosDelRango(Bloqueo bloqueo) {
+        List<Turno> turnos = turnoRepository.findByMedicoIdAndEstadoAndFechaBetween(
+                bloqueo.getMedico().getId(), EstadoTurno.CONFIRMADO, bloqueo.getFechaDesde(), bloqueo.getFechaHasta());
+
+        for (Turno turno : turnos) {
+            turno.setEstado(EstadoTurno.CANCELADO);
+            turno.setMotivoCancelacion(bloqueo.getMotivo());
+        }
+
+        turnoRepository.saveAll(turnos);
     }
 
     private void validarRangoFechas(BloqueoRequestDTO request) {

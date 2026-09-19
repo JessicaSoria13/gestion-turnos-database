@@ -3,7 +3,10 @@ package com.turnosmedicos.backend.controller;
 import com.turnosmedicos.backend.dto.MedicoRequestDTO;
 import com.turnosmedicos.backend.dto.MedicoResponseDTO;
 import com.turnosmedicos.backend.service.MedicoService;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,15 +23,33 @@ public class MedicoController {
         this.medicoService = medicoService;
     }
 
+    @GetMapping
+    public List<MedicoResponseDTO> listar() {
+        return medicoService.listarActivos();
+    }
+
     @GetMapping("/{id}")
     public MedicoResponseDTO obtenerPorId(@PathVariable Integer id) {
         return medicoService.obtenerPorId(id);
     }
 
+    @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<MedicoResponseDTO> crear(@Valid @RequestBody MedicoRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(medicoService.crear(request));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public MedicoResponseDTO actualizar(@PathVariable Integer id, @RequestBody MedicoRequestDTO request) {
+    public MedicoResponseDTO actualizar(@PathVariable Integer id, @Valid @RequestBody MedicoRequestDTO request) {
         return medicoService.actualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        medicoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/horarios-disponibles")

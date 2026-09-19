@@ -213,17 +213,34 @@
       "name": "Médicos",
       "item": [
         {
+          "name": "Listar",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/medicos", "host": ["{{baseUrl}}"], "path": ["medicos"] } }
+        },
+        {
           "name": "Obtener por id",
           "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/medicos/1", "host": ["{{baseUrl}}"], "path": ["medicos", "1"] } }
+        },
+        {
+          "name": "Crear (admin)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"idUsuario\": 1,\n  \"nombre\": \"Dra. Ana López\",\n  \"dni\": \"30111222\",\n  \"matricula\": \"MP-99999\",\n  \"especialidad\": \"Pediatría\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/medicos", "host": ["{{baseUrl}}"], "path": ["medicos"] }
+          }
         },
         {
           "name": "Actualizar (admin)",
           "request": {
             "method": "PUT",
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Dra. Ana López\",\n  \"matricula\": \"MP-12345\",\n  \"especialidad\": \"Clínica Médica\"\n}", "options": { "raw": { "language": "json" } } },
+            "body": { "mode": "raw", "raw": "{\n  \"idUsuario\": 1,\n  \"nombre\": \"Dra. Ana López\",\n  \"dni\": \"30111222\",\n  \"matricula\": \"MP-12345\",\n  \"especialidad\": \"Clínica Médica\"\n}", "options": { "raw": { "language": "json" } } },
             "url": { "raw": "{{baseUrl}}/medicos/1", "host": ["{{baseUrl}}"], "path": ["medicos", "1"] }
           }
+        },
+        {
+          "name": "Eliminar - baja lógica (admin)",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/medicos/1", "host": ["{{baseUrl}}"], "path": ["medicos", "1"] } }
         },
         {
           "name": "Horarios disponibles",
@@ -466,6 +483,84 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": { "raw": "{{baseUrl}}/consultas-medicas", "host": ["{{baseUrl}}"], "path": ["consultas-medicas"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Diagnósticos (solo ADMINISTRADOR)",
+      "item": [
+        {
+          "name": "Listar",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/diagnosticos", "host": ["{{baseUrl}}"], "path": ["diagnosticos"] } }
+        },
+        {
+          "name": "Obtener por id",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/diagnosticos/1", "host": ["{{baseUrl}}"], "path": ["diagnosticos", "1"] } }
+        },
+        {
+          "name": "Listar por consulta",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/diagnosticos/consulta/1", "host": ["{{baseUrl}}"], "path": ["diagnosticos", "consulta", "1"] } }
+        },
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"consultaId\": 1,\n  \"descripcion\": \"Hipertensión arterial leve\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/diagnosticos", "host": ["{{baseUrl}}"], "path": ["diagnosticos"] }
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"consultaId\": 1,\n  \"descripcion\": \"Hipertensión arterial leve, en tratamiento\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/diagnosticos/1", "host": ["{{baseUrl}}"], "path": ["diagnosticos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tratamientos (solo ADMINISTRADOR)",
+      "item": [
+        {
+          "name": "Listar",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/tratamientos", "host": ["{{baseUrl}}"], "path": ["tratamientos"] } }
+        },
+        {
+          "name": "Listar por diagnóstico",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tratamientos?idDiagnostico=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tratamientos"],
+              "query": [ { "key": "idDiagnostico", "value": "1" } ]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/tratamientos/1", "host": ["{{baseUrl}}"], "path": ["tratamientos", "1"] } }
+        },
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"idDiagnostico\": 1,\n  \"descripcion\": \"Enalapril 10mg, 1 comprimido por día\",\n  \"duracion\": \"3 meses\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/tratamientos", "host": ["{{baseUrl}}"], "path": ["tratamientos"] }
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"idDiagnostico\": 1,\n  \"descripcion\": \"Enalapril 10mg, 1 comprimido por día\",\n  \"duracion\": \"6 meses\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/tratamientos/1", "host": ["{{baseUrl}}"], "path": ["tratamientos", "1"] }
           }
         }
       ]

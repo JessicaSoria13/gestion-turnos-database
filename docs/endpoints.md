@@ -43,3 +43,5 @@ registro existente.
 |---|---|
 | 400 | Datos inválidos. |
 | 409 | Ya existe un usuario activo con ese DNI. |
+
+---

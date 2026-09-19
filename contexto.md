@@ -9,7 +9,7 @@
 ## 1. Qué es el proyecto
 
 Backend REST + frontend web para la gestión de turnos de un consultorio médico: administración de
-agenda, atención y seguimiento clínico (turnos, consultas, diagnósticos, tratamientos) y datos
+agenda, atención y seguimiento clínico (turnos, consultas y diagnósticos) y datos
 administrativos (pacientes, coberturas). Diseñado para **un único médico** en su versión inicial,
 con escalabilidad prevista a múltiples profesionales **sin reestructurar el modelo de datos**.
 El sistema corre **solo en local** (sin despliegue).
@@ -64,7 +64,7 @@ Paquetes: `entity`, `repository`, `service`, `controller`, `dto`, `config`.
 ## 5. Modelo de dominio — 11 entidades
 
 Tablas: `usuario`, `paciente`, `medico`, `disponibilidad`, `bloqueo`, `turno`, `consulta_medica`,
-`diagnostico`, `tratamiento`, `cobertura`, `financiador`.
+`diagnostico`, `cobertura`, `financiador`.
 
 | Entidad | Campos principales | Notas |
 |---|---|---|
@@ -76,12 +76,11 @@ Tablas: `usuario`, `paciente`, `medico`, `disponibilidad`, `bloqueo`, `turno`, `
 | **Turno** | idPaciente, idMedico, idCobertura (nullable), idDisponibilidad, fecha, hora, estado (enum), motivoConsulta, motivoCancelacion | Ver reglas especiales abajo. |
 | **ConsultaMedica** | idTurno, observaciones | 1–1 con Turno. Fecha/hora se toman del turno. |
 | **Diagnostico** | idConsulta, descripcion | |
-| **Tratamiento** | idDiagnostico, descripcion, duracion, estado (enum) | |
 | **Cobertura** | idPaciente, idFinanciador, numeroAfiliado, plan, activa | Un paciente puede tener 0..N. |
 | **Financiador** | nombre, activo | Obra social o prepaga. |
 
 **Enums:** `Rol { ADMINISTRADOR, PACIENTE }` · `EstadoTurno { CONFIRMADO, CANCELADO, ATENDIDO }` ·
-`DiaSemana { LUNES..DOMINGO }` · `EstadoTratamiento { EN_CURSO, FINALIZADO, SUSPENDIDO }`.
+`DiaSemana { LUNES..DOMINGO }`.
 (`MEDICO` está previsto como valor futuro del enum `Rol`, no se usa aún.)
 
 **Relaciones (FK con `@ManyToOne` del lado que tiene la FK, según el DER):**
@@ -89,7 +88,7 @@ Tablas: `usuario`, `paciente`, `medico`, `disponibilidad`, `bloqueo`, `turno`, `
 - Medico 1–N Disponibilidad · Medico 1–N Bloqueo · Medico 1–N Turno
 - Paciente 1–N Turno · Paciente 1–N Cobertura
 - Turno N–1 Cobertura (nullable → atención particular) · Turno 1–1 ConsultaMedica
-- ConsultaMedica 1–N Diagnostico · Diagnostico 1–N Tratamiento
+- ConsultaMedica 1–N Diagnostico
 - Cobertura N–1 Financiador
 
 ## 6. Seguridad y roles
@@ -117,7 +116,7 @@ Tablas: `usuario`, `paciente`, `medico`, `disponibilidad`, `bloqueo`, `turno`, `
 5. Si la cancelación la hace el médico, el **motivo es obligatorio**.
 6. Si `idCobertura` es `NULL`, la atención es **particular**.
 7. Una **ConsultaMedica** solo se genera a partir de un turno **CONFIRMADO** existente (relación 1–1). Al registrarla, el turno pasa a **ATENDIDO**.
-8. **Cadena clínica estricta:** no hay consulta sin turno, ni diagnóstico sin consulta, ni tratamiento sin diagnóstico.
+8. **Cadena clínica estricta:** no hay consulta sin turno ni diagnóstico sin consulta.
 9. **Bloqueo:** al crearlo, cancela automáticamente los turnos **CONFIRMADO** cuya fecha caiga en el rango, propagando el motivo del bloqueo como motivo de cancelación. Su baja es lógica y vuelve a ofrecer los horarios, **sin restaurar** los turnos cancelados.
 10. El usuario puede modificar sus datos **excepto DNI y fechaNacimiento**.
 11. El usuario puede cambiar/recuperar su contraseña y darse de baja (el Paciente asociado persiste como historial).
@@ -137,7 +136,7 @@ Tablas: `usuario`, `paciente`, `medico`, `disponibilidad`, `bloqueo`, `turno`, `
 - **Baja lógica:** campo `Boolean activo = true`; el método `DELETE` del service hace `setActivo(false)`; los listados filtran por activo.
 - **Estados con enums**, no con Strings sueltos.
 - **Excepciones de dominio** (p. ej. `RecursoNoEncontradoException`, `ConflictoException`) mapeadas a HTTP en el `@RestControllerAdvice`.
-- **Orden de construcción sugerido** (respeta dependencias): Financiador → Usuario → Paciente → Medico → Disponibilidad → Bloqueo → Turno → ConsultaMedica → Diagnostico → Tratamiento → Cobertura. La **seguridad JWT se agrega al final**, cuando los CRUD ya funcionan.
+- **Orden de construcción sugerido** (respeta dependencias): Financiador → Usuario → Paciente → Medico → Disponibilidad → Bloqueo → Turno → ConsultaMedica → Diagnostico → Cobertura. La **seguridad JWT se agrega al final**, cuando los CRUD ya funcionan.
 
 ## 11. Qué NO hacer (evitar siempre)
 

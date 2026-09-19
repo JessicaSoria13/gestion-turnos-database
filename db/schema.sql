@@ -29,8 +29,6 @@ CREATE TYPE dia_semana AS ENUM ('LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERN
 -- aprobación intermedia.
 CREATE TYPE estado_turno AS ENUM ('CONFIRMADO', 'CANCELADO', 'ATENDIDO');
 
-CREATE TYPE estado_tratamiento AS ENUM ('EN_CURSO', 'FINALIZADO', 'SUSPENDIDO');
-
 -- ------------------------------------------------------------
 -- 1. USUARIO
 -- Credenciales de acceso al sistema.
@@ -181,18 +179,6 @@ CREATE TABLE diagnostico (
     id_diagnostico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_consulta    INTEGER NOT NULL REFERENCES consulta_medica (id_consulta),
     descripcion    TEXT    NOT NULL
-);
-
--- ------------------------------------------------------------
--- 11. TRATAMIENTO
--- Un diagnóstico puede derivar en uno o varios tratamientos.
--- ------------------------------------------------------------
-CREATE TABLE tratamiento (
-    id_tratamiento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_diagnostico INTEGER            NOT NULL REFERENCES diagnostico (id_diagnostico),
-    descripcion    TEXT               NOT NULL,
-    duracion       VARCHAR(50),
-    estado         estado_tratamiento NOT NULL DEFAULT 'EN_CURSO'
 );
 
 -- ------------------------------------------------------------

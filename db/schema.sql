@@ -29,6 +29,10 @@ CREATE TYPE dia_semana AS ENUM ('LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERN
 -- aprobación intermedia.
 CREATE TYPE estado_turno AS ENUM ('CONFIRMADO', 'CANCELADO', 'ATENDIDO');
 
+-- El tratamiento puede encontrarse en curso, finalizado o
+-- suspendido según la evolución clínica.
+CREATE TYPE estado_tratamiento AS ENUM ('EN_CURSO', 'FINALIZADO', 'SUSPENDIDO');
+
 -- ------------------------------------------------------------
 -- 1. USUARIO
 -- Credenciales de acceso al sistema.
@@ -182,15 +186,28 @@ CREATE TABLE diagnostico (
 );
 
 -- ------------------------------------------------------------
+-- 11. TRATAMIENTO
+-- Seguimiento terapéutico asociado a un diagnóstico concreto.
+-- ------------------------------------------------------------
+CREATE TABLE tratamiento (
+    id_tratamiento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_diagnostico INTEGER NOT NULL REFERENCES diagnostico (id_diagnostico),
+    descripcion    TEXT    NOT NULL,
+    duracion       VARCHAR(50),
+    estado         estado_tratamiento NOT NULL DEFAULT 'EN_CURSO'
+);
+
+-- ------------------------------------------------------------
 -- ÍNDICES DE APOYO
 -- Para las consultas más frecuentes (agenda, cálculo de
 -- horarios disponibles y verificación de bloqueos).
 -- ------------------------------------------------------------
-CREATE INDEX idx_turno_medico_fecha     ON turno (id_medico, fecha);
-CREATE INDEX idx_turno_paciente         ON turno (id_paciente);
-CREATE INDEX idx_disponibilidad_medico  ON disponibilidad (id_medico, dia_semana);
-CREATE INDEX idx_bloqueo_medico_fechas  ON bloqueo (id_medico, fecha_desde, fecha_hasta);
-CREATE INDEX idx_cobertura_paciente     ON cobertura (id_paciente);
+CREATE INDEX idx_turno_medico_fecha       ON turno (id_medico, fecha);
+CREATE INDEX idx_turno_paciente           ON turno (id_paciente);
+CREATE INDEX idx_disponibilidad_medico    ON disponibilidad (id_medico, dia_semana);
+CREATE INDEX idx_bloqueo_medico_fechas    ON bloqueo (id_medico, fecha_desde, fecha_hasta);
+CREATE INDEX idx_cobertura_paciente       ON cobertura (id_paciente);
+CREATE INDEX idx_tratamiento_diagnostico  ON tratamiento (id_diagnostico);
 
 -- ------------------------------------------------------------
 -- DATOS DE PRUEBA

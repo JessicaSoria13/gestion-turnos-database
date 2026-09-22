@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "dni": "41000111",
+      "contrasena": "123456",
+      "nombreApellido": "Ana Testigo",
+      "email": "ana.testigo@gmail.com",
+      "celular": "1133445566",
+      "fechaNacimiento": "1998-03-10"
+    }
+auth:
+  type: noauth
+order: 3000

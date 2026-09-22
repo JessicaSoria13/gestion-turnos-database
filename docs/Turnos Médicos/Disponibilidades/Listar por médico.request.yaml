@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/disponibilidades?idMedico=1"
+method: GET
+queryParams:
+  idMedico: "1"
+order: 2000

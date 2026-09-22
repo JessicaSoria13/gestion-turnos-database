@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/recuperar-contrasena/solicitar"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "juan.perez@example.com"
+    }
+auth:
+  type: noauth
+order: 4000

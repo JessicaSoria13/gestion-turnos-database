@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/usuarios/2/contrasena"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "contrasenaActual": "123456",
+      "contrasenaNueva": "654321"
+    }
+order: 3000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/bloqueos/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idMedico": 1,
+      "fechaDesde": "2026-12-24",
+      "fechaHasta": "2026-12-31",
+      "motivo": "Vacaciones de fin de año"
+    }
+order: 4000

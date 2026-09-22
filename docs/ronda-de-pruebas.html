@@ -1,0 +1,672 @@
+<title>Ronda de Pruebas</title>
+<style>
+  :root{
+    --paper:#eef2f1;
+    --surface:#ffffff;
+    --ink:#16211f;
+    --ink-muted:#4b5b57;
+    --accent:#0f6e63;
+    --accent-contrast:#ffffff;
+    --accent-dim:#d7e6e3;
+    --border:#d3ddda;
+    --ok:#2f6e2b;
+    --ok-bg:#e3f0e0;
+    --danger:#a13d2f;
+    --danger-bg:#f5e2de;
+    --mono-bg:#f2f5f4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1513;
+      --surface:#141d1b;
+      --ink:#e7efec;
+      --ink-muted:#9fb3ae;
+      --accent:#4bb3a4;
+      --accent-contrast:#06120f;
+      --accent-dim:#16302c;
+      --border:#24322f;
+      --ok:#7ecb74;
+      --ok-bg:#14301c;
+      --danger:#e08a76;
+      --danger-bg:#3a1d17;
+      --mono-bg:#101917;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1513;
+    --surface:#141d1b;
+    --ink:#e7efec;
+    --ink-muted:#9fb3ae;
+    --accent:#4bb3a4;
+    --accent-contrast:#06120f;
+    --accent-dim:#16302c;
+    --border:#24322f;
+    --ok:#7ecb74;
+    --ok-bg:#14301c;
+    --danger:#e08a76;
+    --danger-bg:#3a1d17;
+    --mono-bg:#101917;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Public Sans","Segoe UI",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    padding-inline:20px;
+    padding-block:36px 80px;
+  }
+  h1,h2,h3{
+    font-family:"Fraunces","Georgia",serif;
+    font-weight:700;
+    text-wrap:balance;
+    color:var(--ink);
+    margin:0;
+  }
+  code, .mono{
+    font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  }
+  a{color:var(--accent);}
+
+  .page{
+    max-width:760px;
+    margin-inline:auto;
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+  }
+
+  /* ---------- header ---------- */
+  header.intro{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  header.intro h1{font-size:clamp(28px,5vw,40px);}
+  header.intro p{color:var(--ink-muted); max-width:62ch; margin:0;}
+
+  .progress{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13px;
+    color:var(--ink-muted);
+  }
+  .progress .track{
+    flex:1;
+    height:6px;
+    border-radius:3px;
+    background:var(--accent-dim);
+    overflow:hidden;
+  }
+  .progress .fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width .3s ease;
+  }
+
+  /* ---------- credenciales ---------- */
+  .credenciales{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .credenciales h2{font-size:17px; margin-bottom:10px;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+  }
+  table caption{ text-align:left; }
+  th,td{
+    text-align:left;
+    padding:7px 10px 7px 0;
+    border-bottom:1px solid var(--border);
+  }
+  th{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    font-weight:500;
+  }
+  td.mono{font-size:14px;}
+  tr:last-child td{border-bottom:none;}
+  .tabla-wrap{overflow-x:auto;}
+
+  /* ---------- prerrequisitos ---------- */
+  .prereqs{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .prereqs h2{font-size:17px; margin-bottom:10px;}
+  .prereqs ul{margin:0; padding-left:1.15em; display:flex; flex-direction:column; gap:6px;}
+  .prereqs li::marker{color:var(--accent);}
+
+  /* ---------- pasos ---------- */
+  .pasos{display:flex; flex-direction:column; gap:22px;}
+  .paso{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 22px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    position:relative;
+  }
+  .paso-head{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+  }
+  .chip{
+    flex:none;
+    width:34px; height:34px;
+    border-radius:8px;
+    background:var(--accent-dim);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    font-size:14px;
+  }
+  .paso-titulo{display:flex; flex-direction:column; gap:2px; flex:1;}
+  .paso-titulo h3{font-size:19px;}
+  .paso-titulo .sub{color:var(--ink-muted); font-size:14.5px;}
+
+  label.check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    color:var(--ink-muted);
+    cursor:pointer;
+    white-space:nowrap;
+    padding-top:4px;
+  }
+  label.check input{
+    width:15px; height:15px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+
+  .paso p{margin:0;}
+  .paso p.explica{color:var(--ink-muted); font-size:15px;}
+
+  .request{
+    border:1px solid var(--border);
+    border-radius:9px;
+    overflow:hidden;
+  }
+  .request .bar{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    background:var(--accent-dim);
+    padding:9px 12px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13.5px;
+    flex-wrap:wrap;
+  }
+  .method{
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:5px;
+    color:var(--accent-contrast);
+    background:var(--accent);
+    font-size:12px;
+    letter-spacing:.03em;
+  }
+  .path{color:var(--ink); word-break:break-all;}
+  .request .field{
+    padding:10px 12px;
+    border-top:1px solid var(--border);
+  }
+  .request .field .k{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    display:block;
+    margin-bottom:6px;
+  }
+  pre{
+    margin:0;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13.5px;
+    background:var(--mono-bg);
+    padding:12px 14px;
+    border-radius:7px;
+    overflow-x:auto;
+    line-height:1.5;
+  }
+  .field pre{background:transparent; padding:0;}
+  .hdr-kv{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13.5px;
+    background:var(--mono-bg);
+    padding:10px 12px;
+    border-radius:7px;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .hdr-kv .k2{color:var(--ink-muted);}
+
+  .resultado{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    background:var(--accent-dim);
+    border-radius:9px;
+    padding:12px 14px;
+  }
+  .resultado .txt{font-size:14.5px;}
+  .resultado .txt strong{display:block; margin-bottom:2px;}
+
+  .pill{
+    flex:none;
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    font-size:12.5px;
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .pill.ok{background:var(--ok-bg); color:var(--ok);}
+  .pill.err{background:var(--danger-bg); color:var(--danger);}
+
+  .tip{
+    font-size:13.5px;
+    color:var(--ink-muted);
+    border-left:3px solid var(--accent);
+    padding-left:12px;
+  }
+
+  /* ---------- referencia modulos ---------- */
+  .ref h2, .troubleshoot h2, .cierre h2{font-size:22px; margin-bottom:4px;}
+  .ref > p, .troubleshoot > p{color:var(--ink-muted); margin:6px 0 16px; max-width:60ch;}
+
+  .ref-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:12px;
+  }
+  .ref-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .ref-card h4{
+    margin:0;
+    font-size:15px;
+    font-family:"Public Sans",sans-serif;
+    font-weight:600;
+  }
+  .ref-card .mono{font-size:12.5px; color:var(--ink-muted);}
+  .ref-card .quien{font-size:12.5px; color:var(--accent);}
+
+  /* ---------- troubleshoot ---------- */
+  .diag-row{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:2px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .diag-item{
+    background:var(--surface);
+    padding:14px 16px;
+    display:grid;
+    grid-template-columns:minmax(140px,1fr) 2fr;
+    gap:4px 16px;
+  }
+  .diag-item .sintoma{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13.5px;
+    color:var(--danger);
+    font-weight:600;
+  }
+  .diag-item .causa{font-size:14px; color:var(--ink-muted); grid-column:1 / -1;}
+  .diag-item .solucion{font-size:14.5px; grid-column:1 / -1;}
+  .diag-item .solucion b{color:var(--accent);}
+  @media (max-width:480px){
+    .diag-item{grid-template-columns:1fr;}
+  }
+
+  .cierre{
+    background:var(--accent);
+    color:var(--accent-contrast);
+    border-radius:12px;
+    padding:22px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .cierre h2{color:var(--accent-contrast);}
+  .cierre p{margin:0; opacity:.92;}
+
+  @media (max-width:480px){
+    .paso-head{flex-wrap:wrap;}
+    label.check{margin-left:48px;}
+  }
+</style>
+
+<div class="page">
+
+  <header class="intro">
+    <span class="eyebrow">Sistema de Gestión de Turnos Médicos · Backend</span>
+    <h1>Ronda de pruebas</h1>
+    <p>Guía para probar, con Postman, lo que se subió esta semana: registro, login, permisos por rol y algunos endpoints que dependían de eso. No hace falta saber programar — vas copiando y pegando.</p>
+    <div class="progress">
+      <span id="progreso-texto">0/7 pasos marcados</span>
+      <span class="track"><span class="fill" id="progreso-fill"></span></span>
+    </div>
+  </header>
+
+  <div class="prereqs">
+    <h2>Antes de empezar</h2>
+    <ul>
+      <li>Tenés el código actualizado (<code>git pull</code> de la rama que te pasaron).</li>
+      <li>PostgreSQL está corriendo en tu máquina.</li>
+      <li>Tu <code>application.properties</code> tiene <code>spring.datasource.*</code>, <code>jwt.secret</code> y <code>spring.mail.*</code> completos (aunque sea con datos de prueba — sin <code>spring.mail.host</code> el backend no arranca).</li>
+      <li>Tenés <a href="https://www.postman.com/downloads/" target="_blank" rel="noopener">Postman</a> instalado.</li>
+    </ul>
+  </div>
+
+  <div class="credenciales">
+    <h2>Usuarios ya cargados (datos de prueba)</h2>
+    <div class="tabla-wrap">
+      <table>
+        <thead>
+          <tr><th>Rol</th><th>DNI</th><th>Contraseña</th><th>Quién es</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ADMINISTRADOR</td><td class="mono">30111222</td><td class="mono">123456</td><td>La médica</td></tr>
+          <tr><td>PACIENTE</td><td class="mono">32111222</td><td class="mono">123456</td><td>Juan Pérez (paciente id 1)</td></tr>
+          <tr><td>PACIENTE</td><td class="mono">33222111</td><td class="mono">123456</td><td>María Gómez (paciente id 2)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <section class="pasos">
+
+    <div class="paso" data-paso="1">
+      <div class="paso-head">
+        <span class="chip">1</span>
+        <div class="paso-titulo">
+          <h3>Levantá el backend</h3>
+          <span class="sub">Terminal, en la carpeta del proyecto</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="1"> listo</label>
+      </div>
+      <pre>cd backend
+.\mvnw.cmd spring-boot:run</pre>
+      <div class="resultado">
+        <span class="pill ok">esperado</span>
+        <div class="txt"><strong>Started BackendApplication in ... seconds</strong>Dejá esa terminal abierta todo el tiempo que estés probando. Si la cerrás, se apaga el backend y Postman deja de poder conectarse.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="2">
+      <div class="paso-head">
+        <span class="chip">2</span>
+        <div class="paso-titulo">
+          <h3>Iniciá sesión</h3>
+          <span class="sub">Todas las URLs de esta guía empiezan con <code>http://localhost:8080/api/v1</code></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="2"> listo</label>
+      </div>
+      <p class="explica">En Postman: pestaña <strong>Body</strong> → marcá <strong>raw</strong> → en el desplegable de la derecha elegí <strong>JSON</strong> (por defecto dice "Text", hay que cambiarlo).</p>
+      <div class="request">
+        <div class="bar"><span class="method">POST</span><span class="path">/auth/login</span></div>
+        <div class="field">
+          <span class="k">Body (raw, JSON)</span>
+          <pre>{
+  "dni": "32111222",
+  "contrasena": "123456"
+}</pre>
+        </div>
+      </div>
+      <div class="resultado">
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Te devuelve un token y el rol</strong><code>{ "token": "eyJhbG...", "rol": "PACIENTE" }</code>. Copiá el valor de <code>token</code> — lo vas a necesitar en todos los pasos siguientes. Es como una pulsera de identificación: sin ella, el sistema no sabe quién sos.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="3">
+      <div class="paso-head">
+        <span class="chip">3</span>
+        <div class="paso-titulo">
+          <h3>Probá un endpoint protegido</h3>
+          <span class="sub">Acá usás el token por primera vez</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="3"> listo</label>
+      </div>
+      <p class="explica">Pestaña <strong>Headers</strong> (al lado de Body) → agregá una fila: Key <code>Authorization</code>, Value <code>Bearer </code> + el token que copiaste (con un espacio después de "Bearer", sin comillas).</p>
+      <div class="request">
+        <div class="bar"><span class="method">GET</span><span class="path">/financiadores</span></div>
+        <div class="field">
+          <span class="k">Headers</span>
+          <div class="hdr-kv">Authorization: <span class="k2">Bearer eyJhbG...</span></div>
+        </div>
+      </div>
+      <div class="resultado">
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Lista de financiadores: IOMA y OSDE</strong>Esto antes daba <span class="pill err" style="vertical-align:middle;">403</span> para un paciente — era un bug que ya se corrigió. Si te sigue dando 403, avisá.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="4">
+      <div class="paso-head">
+        <span class="chip">4</span>
+        <div class="paso-titulo">
+          <h3>Confirmá que los permisos frenan a un paciente</h3>
+          <span class="sub">Mismo token del paso 2 (paciente)</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="4"> listo</label>
+      </div>
+      <p class="explica">Mismo header <code>Authorization</code> de antes. Esta vez intentá <em>crear</em> un financiador — eso es tarea del administrador, no del paciente.</p>
+      <div class="request">
+        <div class="bar"><span class="method">POST</span><span class="path">/financiadores</span></div>
+        <div class="field">
+          <span class="k">Body (raw, JSON)</span>
+          <pre>{ "nombre": "Swiss Medical" }</pre>
+        </div>
+      </div>
+      <div class="resultado">
+        <span class="pill err">403</span>
+        <div class="txt"><strong>Sin permisos — y así tiene que ser</strong>Un 403 acá es el resultado correcto: confirma que un paciente no puede crear datos de administración.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="5">
+      <div class="paso-head">
+        <span class="chip">5</span>
+        <div class="paso-titulo">
+          <h3>Probá "mis coberturas"</h3>
+          <span class="sub">Sigue siendo el token de Juan Pérez (paciente id 1)</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="5"> listo</label>
+      </div>
+      <div class="request">
+        <div class="bar"><span class="method">GET</span><span class="path">/coberturas?idPaciente=1</span></div>
+      </div>
+      <div class="resultado">
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Solo las coberturas de ese paciente</strong>Este era el bug más importante que se corrigió: antes ni el propio paciente podía ver su lista de coberturas.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="6">
+      <div class="paso-head">
+        <span class="chip">6</span>
+        <div class="paso-titulo">
+          <h3>Registrá un paciente nuevo</h3>
+          <span class="sub">No hace falta token para este — es autorregistro</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="6"> listo</label>
+      </div>
+      <p class="explica">Usá un DNI que no exista todavía. Si repetís el mismo DNI en un segundo intento, va a dar <span class="pill err" style="vertical-align:middle;">409</span> (ya existe) — es esperable, cambiá el DNI y el email.</p>
+      <div class="request">
+        <div class="bar"><span class="method">POST</span><span class="path">/auth/register</span></div>
+        <div class="field">
+          <span class="k">Body (raw, JSON)</span>
+          <pre>{
+  "dni": "41000111",
+  "contrasena": "123456",
+  "nombreApellido": "Ana Testigo",
+  "email": "ana.testigo@gmail.com",
+  "celular": "1133445566",
+  "fechaNacimiento": "1998-03-10"
+}</pre>
+        </div>
+      </div>
+      <div class="resultado">
+        <span class="pill ok">201</span>
+        <div class="txt"><strong>{ idUsuario, idPaciente, mensaje: "Registro exitoso." }</strong>Probá loguearte después con ese mismo dni y contraseña (paso 2) para confirmar que quedó bien creado, con rol PACIENTE.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="7">
+      <div class="paso-head">
+        <span class="chip">7</span>
+        <div class="paso-titulo">
+          <h3>Repetí todo, pero como administradora</h3>
+          <span class="sub">Logueate con dni 30111222 (paso 2) y guardá ese token nuevo</span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="7"> listo</label>
+      </div>
+      <p class="explica">Con el token de la médica, este endpoint sí tiene que andar — es información interna, solo para administración:</p>
+      <div class="request">
+        <div class="bar"><span class="method">GET</span><span class="path">/usuarios</span></div>
+        <div class="field">
+          <span class="k">Headers</span>
+          <div class="hdr-kv">Authorization: <span class="k2">Bearer eyJhbG...</span> (el de la médica)</div>
+        </div>
+      </div>
+      <div class="resultado">
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Lista completa de usuarios</strong>Si probás esto mismo con el token de un paciente, tiene que dar 403 — esa es la diferencia entre roles funcionando.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="ref">
+    <h2>¿Querés probar tu propio módulo?</h2>
+    <p>El patrón es siempre el mismo: <code>GET</code> lista, <code>GET /{id}</code> uno solo, <code>POST</code> crea, <code>PUT /{id}</code> edita, <code>DELETE /{id}</code> da de baja (excepto Turno, que no tiene <code>DELETE</code>: se cancela con <code>PUT /{id}/cancelar</code>). Siempre con el header <code>Authorization</code> del paso 3.</p>
+    <div class="ref-grid">
+      <div class="ref-card"><h4>Médicos</h4><span class="mono">/medicos</span><span class="quien">+ /medicos/{id}/horarios-disponibles</span></div>
+      <div class="ref-card"><h4>Pacientes</h4><span class="mono">/pacientes</span></div>
+      <div class="ref-card"><h4>Disponibilidad</h4><span class="mono">/disponibilidades</span></div>
+      <div class="ref-card"><h4>Bloqueos</h4><span class="mono">/bloqueos</span><span class="quien">solo ADMINISTRADOR</span></div>
+      <div class="ref-card"><h4>Turnos</h4><span class="mono">/turnos</span></div>
+      <div class="ref-card"><h4>Consultas médicas</h4><span class="mono">/consultas-medicas</span><span class="quien">solo ADMINISTRADOR</span></div>
+      <div class="ref-card"><h4>Coberturas</h4><span class="mono">/coberturas</span></div>
+      <div class="ref-card"><h4>Recuperar contraseña</h4><span class="mono">/auth/recuperar-contrasena/solicitar</span><span class="quien">necesita mail real configurado</span></div>
+    </div>
+  </section>
+
+  <section class="troubleshoot">
+    <h2>Si algo no anda</h2>
+    <p>Antes de avisar, revisá esto — la mayoría de las veces es uno de estos cinco casos.</p>
+    <div class="diag-row">
+      <div class="diag-item">
+        <span class="sintoma">Could not get response / ECONNREFUSED</span>
+        <span class="causa">El backend no está corriendo, o lo cerraste sin querer.</span>
+        <span class="solucion">Volvé al <b>paso 1</b> y fijate que la terminal siga abierta con "Started BackendApplication".</span>
+      </div>
+      <div class="diag-item">
+        <span class="sintoma">BUILD FAILURE al arrancar</span>
+        <span class="causa">Falta configurar <code>application.properties</code> (base de datos, jwt.secret o mail).</span>
+        <span class="solucion">Copiá <code>application.properties.example</code> y completá las variables. Si sigue sin andar, avisá a Cami con el error completo.</span>
+      </div>
+      <div class="diag-item">
+        <span class="sintoma">401 No autenticado</span>
+        <span class="causa">Falta el header Authorization, está mal escrito, o el token venció.</span>
+        <span class="solucion">Revisá que diga exactamente <code>Bearer </code> + token, sin comillas. Si venció (pasaron 24hs), volvé a hacer <b>login</b>.</span>
+      </div>
+      <div class="diag-item">
+        <span class="sintoma">403 Sin permisos</span>
+        <span class="causa">Tu token es de un rol que no puede hacer esa acción.</span>
+        <span class="solucion">Es el comportamiento correcto en los pasos 4 y 7. Si te pasa en otro paso, avisá — puede ser un bug nuevo.</span>
+      </div>
+      <div class="diag-item">
+        <span class="sintoma">409 Conflicto</span>
+        <span class="causa">Ya existe un registro con ese DNI / nombre.</span>
+        <span class="solucion">Cambiá el dato (por ejemplo el DNI del registro) y reintentá.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <h2>¿Encontraste algo raro?</h2>
+    <p>Pasale a Cami: el paso donde pasó, el body que mandaste, y una captura de la respuesta completa de Postman (código de estado + JSON). Con eso alcanza para reproducirlo.</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var STORAGE_KEY = "ronda-pruebas-progreso-turnos-medicos";
+  var checks = document.querySelectorAll('input[type="checkbox"][data-step]');
+  var total = checks.length;
+  var fill = document.getElementById("progreso-fill");
+  var texto = document.getElementById("progreso-texto");
+
+  function leer(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function guardar(estado){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch(e){}
+  }
+  function actualizarProgreso(){
+    var marcados = 0;
+    checks.forEach(function(c){ if(c.checked) marcados++; });
+    if(fill) fill.style.width = (total ? (marcados/total*100) : 0) + "%";
+    if(texto) texto.textContent = marcados + "/" + total + " pasos marcados";
+  }
+
+  var estado = leer();
+  checks.forEach(function(c){
+    var id = c.getAttribute("data-step");
+    if(estado[id]) c.checked = true;
+    c.addEventListener("change", function(){
+      var s = leer();
+      s[id] = c.checked;
+      guardar(s);
+      actualizarProgreso();
+    });
+  });
+  actualizarProgreso();
+})();
+</script>

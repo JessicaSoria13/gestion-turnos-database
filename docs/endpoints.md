@@ -50,7 +50,8 @@ registro existente.
 
 ### `POST /api/v1/tratamientos`
 
-Registra un tratamiento asociado a un diagnóstico existente. El estado inicial se crea como
+Registra un tratamiento asociado a un diagnóstico existente. El estado inicial
+se crea como
 `EN_CURSO` automáticamente.
 
 **Request Body**
@@ -84,3 +85,5 @@ Registra un tratamiento asociado a un diagnóstico existente. El estado inicial 
 |---|---|
 | 400 | `idDiagnostico` es obligatorio y `descripcion` no puede estar vacía. |
 | 404 | No existe el diagnóstico o tratamiento indicado. |
+
+---

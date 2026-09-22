@@ -16,6 +16,7 @@ import com.turnosmedicos.backend.repository.PacienteRepository;
 import com.turnosmedicos.backend.repository.PasswordResetTokenRepository;
 import com.turnosmedicos.backend.repository.UsuarioRepository;
 import com.turnosmedicos.backend.security.JwtService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class AuthService {
         this.emailService = emailService;
     }
 
+    @Transactional
     public RegistroResponseDTO registrar(RegistroRequestDTO request) {
         Usuario usuario = usuarioRepository.findByDni(request.dni()).orElse(null);
 

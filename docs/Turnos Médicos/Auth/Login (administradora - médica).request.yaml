@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "dni": "30111222",
+      "contrasena": "123456"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 200) {
+          pm.collectionVariables.set('token', pm.response.json().token);
+          console.log('Token guardado (ADMINISTRADOR).');
+      }
+    language: text/javascript
+order: 2000

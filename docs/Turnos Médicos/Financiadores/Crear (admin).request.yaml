@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/financiadores"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Swiss Medical",
+      "cuit": "30-77777777-7"
+    }
+order: 3000

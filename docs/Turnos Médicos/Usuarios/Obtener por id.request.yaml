@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/usuarios/2"
+method: GET
+order: 2000

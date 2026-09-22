@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/disponibilidades/2"
+method: DELETE
+order: 6000

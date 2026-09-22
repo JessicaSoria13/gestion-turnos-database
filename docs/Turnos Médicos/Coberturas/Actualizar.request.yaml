@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/coberturas/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idPaciente": 1,
+      "idFinanciador": 2,
+      "numeroAfiliado": "123456789",
+      "plan": "210"
+    }
+order: 5000

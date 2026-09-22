@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/consultas-medicas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idTurno": 3,
+      "observaciones": "Paciente sin síntomas, control de rutina normal."
+    }
+order: 3000

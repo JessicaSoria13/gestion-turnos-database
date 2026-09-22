@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/recuperar-contrasena/confirmar"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "token": "pegar-aca-el-token-que-llego-por-mail",
+      "contrasenaNueva": "654321"
+    }
+auth:
+  type: noauth
+order: 5000

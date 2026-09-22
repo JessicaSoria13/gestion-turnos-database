@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/bloqueos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idMedico": 1,
+      "fechaDesde": "2026-12-24",
+      "fechaHasta": "2026-12-26",
+      "motivo": "Feriado"
+    }
+order: 3000

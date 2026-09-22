@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/medicos/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Dra. Ana López",
+      "matricula": "MP-12345",
+      "especialidad": "Clínica Médica"
+    }
+order: 2000

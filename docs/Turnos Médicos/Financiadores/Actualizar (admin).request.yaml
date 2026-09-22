@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/financiadores/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "IOMA",
+      "cuit": "30-99999999-9"
+    }
+order: 4000

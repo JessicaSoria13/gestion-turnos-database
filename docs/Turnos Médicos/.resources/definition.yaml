@@ -1,0 +1,11 @@
+$kind: collection
+description: "Colección para probar el backend del sistema de turnos médicos. Correr primero algún request de la carpeta Auth > Login: guarda el token automáticamente para el resto de los requests. baseUrl apunta a localhost:8080 por defecto."
+variables:
+  baseUrl: http://localhost:8080/api/v1
+  token: ""
+auth:
+  - id: f8a04a04-38ae-4cad-ae67-970c8e63ce0d
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{token}}"

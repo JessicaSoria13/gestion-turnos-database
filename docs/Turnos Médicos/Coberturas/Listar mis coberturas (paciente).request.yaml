@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/coberturas?idPaciente=1"
+method: GET
+queryParams:
+  idPaciente: "1"
+order: 2000

@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/turnos/3/cancelar"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "canceladoPorMedico": false,
+      "motivoCancelacion": "Ya no puedo asistir"
+    }
+order: 4000

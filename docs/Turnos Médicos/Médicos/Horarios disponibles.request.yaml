@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/medicos/1/horarios-disponibles?fecha=2026-09-21"
+method: GET
+queryParams:
+  fecha: 2026-09-21
+order: 3000

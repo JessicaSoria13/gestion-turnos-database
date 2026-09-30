@@ -5,44 +5,24 @@
 -- haya levantado el esquema al menos una vez (spring.jpa.hibernate.ddl-auto=update
 -- crea las tablas a partir de las entidades JPA).
 --
-<<<<<<< HEAD
 -- Objetivo: que las 4 personas del equipo carguen EXACTAMENTE los
--- mismos datos en su base LOCAL (no compartida). Como las tablas
--- están vacías y los ID son autoincrementales, si todas ejecutan
--- este script una sola vez sobre un esquema recién creado, van a
--- terminar con los mismos ID (usuario 1, paciente 1, turno 1, etc.)
--- y por lo tanto las mismas URLs funcionan igual para todas.
+-- mismos datos en su base LOCAL (no compartida). El TRUNCATE de abajo
+-- vacía las tablas del dominio y reinicia los IDENTITY antes de cargar,
+-- así el script se puede correr las veces que haga falta y siempre se
+-- termina con los mismos ID (usuario 1, paciente 1, turno 1, etc.), y
+-- las mismas URLs funcionan igual para todas.
 --
 -- Contraseña de todos los usuarios de prueba: "123456"
--- (hash BCrypt real, válido para cuando se implemente /auth/login).
+-- (hash BCrypt real, válido para /auth/login).
 --
 -- Orden de carga: respeta las relaciones (FK) entre tablas.
 -- ============================================================
-=======
--- Idempotente: al arrancar trunca todas las tablas del dominio
--- y reinicia los IDENTITY, así los IDs usados abajo (FKs
--- hardcodeadas) son siempre predecibles.
--- ============================================================
--- ============================================================
--- Datos de prueba (seed) - Sistema de Gestión de Turnos Médicos
--- ============================================================
--- Ejecutar contra la base turnos_medicos DESPUÉS de que el backend
--- haya levantado el esquema al menos una vez (spring.jpa.hibernate.ddl-auto=update
--- crea las tablas a partir de las entidades JPA).
---
--- Objetivo: que las 4 personas del equipo carguen EXACTAMENTE los
--- mismos datos en su base LOCAL (no compartida). Como las tablas
--- están vacías y los ID son autoincrementales, si todas ejecutan
--- este script una sola vez sobre un esquema recién creado, van a
--- terminar con los mismos ID (usuario 1, paciente 1, turno 1, etc.)
--- y por lo tanto las mismas URLs funcionan igual para todas.
---
--- Contraseña de todos los usuarios de prueba: "123456"
--- (hash BCrypt real, válido para cuando se implemente /auth/login).
---
--- Orden de carga: respeta las relaciones (FK) entre tablas.
--- ============================================================
->>>>>>> 5f1fb83848f1766f4114782371b8feb60f55e2d7
+
+TRUNCATE TABLE
+    tratamiento, diagnostico, consulta_medica, turno, cobertura,
+    bloqueo, disponibilidad, medico_especialidad, medico, paciente,
+    usuario, financiador
+RESTART IDENTITY CASCADE;
 
 -- ------------------------------------------------------------
 -- 1. FINANCIADOR (sin dependencias)
@@ -51,20 +31,14 @@ INSERT INTO financiador (nombre, cuit, activo) VALUES
 ('IOMA', '30-99999999-9', true),  -- id_financiador = 1
 ('OSDE', '30-88888888-8', true);  -- id_financiador = 2
 
-<<<<<<< HEAD
-=======
 -- ------------------------------------------------------------
 -- 2. USUARIO (credenciales de acceso)
 -- ------------------------------------------------------------
->>>>>>> 5f1fb83848f1766f4114782371b8feb60f55e2d7
 INSERT INTO usuario (dni, contrasena, rol, activo) VALUES
 ('30111222', '$2b$10$Nvf/LrVFh0D7rpNvKSu7G.Svz4qTZ04PfW0sPU3DorP1LL4/OphQm', 'ADMINISTRADOR', true), -- id_usuario = 1 (médica)
 ('32111222', '$2b$10$Nvf/LrVFh0D7rpNvKSu7G.Svz4qTZ04PfW0sPU3DorP1LL4/OphQm', 'PACIENTE',       true), -- id_usuario = 2 (Juan Pérez)
 ('33222111', '$2b$10$Nvf/LrVFh0D7rpNvKSu7G.Svz4qTZ04PfW0sPU3DorP1LL4/OphQm', 'PACIENTE',       true); -- id_usuario = 3 (María Gómez)
-<<<<<<< HEAD
-=======
 
->>>>>>> 5f1fb83848f1766f4114782371b8feb60f55e2d7
 -- ------------------------------------------------------------
 -- 3. MEDICO (1-1 con usuario)
 -- ------------------------------------------------------------

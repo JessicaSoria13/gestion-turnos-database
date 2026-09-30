@@ -9,14 +9,22 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// Un mismo DNI puede tener dos filas de Usuario (una PACIENTE y otra
+// ADMINISTRADOR, contexto.md seccion 6) - por eso la unicidad es sobre
+// (dni, rol), no sobre dni solo. Ver db/migracion-2026-09.sql: quien ya
+// tenia una base local con dni unico tiene que correr esa migracion a mano,
+// ddl-auto=update no reemplaza una unique constraint existente por otra.
 @Entity
-@Table(name = "usuario")
+@Table(name = "usuario", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_usuario_dni_rol", columnNames = {"dni", "rol"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,7 +37,7 @@ public class Usuario {
     @Column(name = "id_usuario")
     private Integer id;
 
-    @Column(name = "dni", length = 10, nullable = false, unique = true)
+    @Column(name = "dni", length = 10, nullable = false)
     private String dni;
 
     @Column(name = "contrasena", length = 255, nullable = false)

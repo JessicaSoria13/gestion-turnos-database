@@ -7,6 +7,7 @@ import com.turnosmedicos.backend.entity.Medico;
 import com.turnosmedicos.backend.entity.Turno;
 import com.turnosmedicos.backend.entity.Usuario;
 import com.turnosmedicos.backend.enums.DiaSemana;
+import com.turnosmedicos.backend.enums.EstadoTurno;
 import com.turnosmedicos.backend.enums.Rol;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
@@ -85,9 +86,9 @@ public class MedicoService {
                 .nombreApellido(request.nombre())
                 .dni(request.dni())
                 .matricula(request.matricula())
-                .especialidades(request.especialidad() == null
+                .especialidades(request.especialidades() == null
                         ? new ArrayList<>()
-                        : new ArrayList<>(List.of(request.especialidad())))
+                        : new ArrayList<>(request.especialidades()))
                 .build();
 
         return toResponseDTO(medicoRepository.save(medico));
@@ -110,9 +111,9 @@ public class MedicoService {
 
         medico.setNombreApellido(request.nombre());
         medico.setMatricula(request.matricula());
-        medico.setEspecialidades(request.especialidad() == null
+        medico.setEspecialidades(request.especialidades() == null
                 ? new ArrayList<>()
-                : new ArrayList<>(List.of(request.especialidad())));
+                : new ArrayList<>(request.especialidades()));
 
         return toResponseDTO(medicoRepository.save(medico));
     }
@@ -140,7 +141,7 @@ public class MedicoService {
         }
 
         Set<LocalTime> ocupados = turnoRepository
-                .findByMedicoIdAndFecha(id, fecha)
+                .findByMedicoIdAndFechaAndEstadoNot(id, fecha, EstadoTurno.CANCELADO)
                 .stream()
                 .map(Turno::getHora)
                 .collect(Collectors.toSet());
@@ -173,7 +174,7 @@ public class MedicoService {
                 medico.getId(),
                 medico.getNombreApellido(),
                 medico.getMatricula(),
-                medico.getEspecialidades().isEmpty() ? null : medico.getEspecialidades().get(0),
+                medico.getEspecialidades(),
                 medico.getActivo()
         );
     }

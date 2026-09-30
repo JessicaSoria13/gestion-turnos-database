@@ -42,7 +42,7 @@ public class DiagnosticoService {
     }
 
     public DiagnosticoResponseDTO crear(DiagnosticoRequestDTO request) {
-        ConsultaMedica consulta = buscarConsultaPorId(request.consultaId());
+        ConsultaMedica consulta = buscarConsultaPorId(request.idConsulta());
 
         Diagnostico diagnostico = Diagnostico.builder()
                 .consulta(consulta)
@@ -54,7 +54,7 @@ public class DiagnosticoService {
 
     public DiagnosticoResponseDTO actualizar(Integer id, DiagnosticoRequestDTO request) {
         Diagnostico diagnostico = buscarPorId(id);
-        ConsultaMedica consulta = buscarConsultaPorId(request.consultaId());
+        ConsultaMedica consulta = buscarConsultaPorId(request.idConsulta());
 
         diagnostico.setConsulta(consulta);
         diagnostico.setDescripcion(request.descripcion());

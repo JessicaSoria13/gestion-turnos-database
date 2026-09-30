@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/tratamientos/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idDiagnostico": 1,
+      "descripcion": "Enalapril 10mg, 1 comprimido por día",
+      "duracion": "6 meses"
+    }
+order: 5000

@@ -15,10 +15,13 @@ import com.turnosmedicos.backend.repository.MedicoRepository;
 import com.turnosmedicos.backend.repository.PacienteRepository;
 import com.turnosmedicos.backend.repository.TurnoRepository;
 import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
+import com.turnosmedicos.backend.enums.DiaSemana;
 import com.turnosmedicos.backend.enums.EstadoTurno;
 import com.turnosmedicos.backend.exception.DatosInvalidosException;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -78,14 +81,42 @@ public class TurnoService {
 
 
     public TurnoResponseDTO crear(TurnoRequestDTO request) {
-        Paciente paciente =pacienteRepository.findById(request.idPaciente())
+        Paciente paciente = pacienteRepository.findById(request.idPaciente())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe paciente con el id: " + request.idPaciente()));
+        if (!paciente.getActivo()) {
+            throw new ConflictoException("El paciente " + request.idPaciente() + " está dado de baja");
+        }
 
         Medico medico = medicoRepository.findById(request.idMedico())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe medico con el id: " + request.idMedico()));
+        if (!medico.getActivo()) {
+            throw new ConflictoException("El médico " + request.idMedico() + " está dado de baja");
+        }
 
         Disponibilidad disponibilidad = disponibilidadRepository.findById(request.idDisponibilidad())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe disponibilidad con el id: " + request.idDisponibilidad()));
+
+        if (!disponibilidad.getActivo()) {
+            throw new ConflictoException("La disponibilidad indicada está dada de baja");
+        }
+        if (!disponibilidad.getMedico().getId().equals(medico.getId())) {
+            throw new ConflictoException("La disponibilidad indicada no pertenece al médico");
+        }
+
+        DiaSemana diaDeLaFecha = DiaSemana.values()[request.fecha().getDayOfWeek().getValue() - 1];
+        if (disponibilidad.getDiaSemana() != diaDeLaFecha) {
+            throw new ConflictoException("La fecha no coincide con el día de la disponibilidad indicada");
+        }
+
+        LocalTime horaInicio = disponibilidad.getHoraInicio();
+        LocalTime horaFin = disponibilidad.getHoraFin();
+        if (request.hora().isBefore(horaInicio) || !request.hora().isBefore(horaFin)) {
+            throw new ConflictoException("El horario está fuera de la disponibilidad del médico");
+        }
+        long minutosDesdeInicio = Duration.between(horaInicio, request.hora()).toMinutes();
+        if (minutosDesdeInicio % disponibilidad.getDuracionTurnoMin() != 0) {
+            throw new ConflictoException("El horario no coincide con turnos de " + disponibilidad.getDuracionTurnoMin() + " minutos");
+        }
 
         Cobertura cobertura = null;
         if (request.idCobertura() != null) {
@@ -93,7 +124,8 @@ public class TurnoService {
                     .orElseThrow(() -> new RecursoNoEncontradoException("No existe cobertura: " + request.idCobertura()));
         }
 
-        if (turnoRepository.existsByMedicoIdAndFechaAndHora(request.idMedico(), request.fecha(), request.hora())) {
+        if (turnoRepository.existsByMedicoIdAndFechaAndHoraAndEstadoNot(
+                request.idMedico(), request.fecha(), request.hora(), EstadoTurno.CANCELADO)) {
             throw new ConflictoException("El medico ya tiene turno asignado en ese horario");
         }
 

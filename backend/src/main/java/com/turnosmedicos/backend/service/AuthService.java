@@ -12,6 +12,7 @@ import com.turnosmedicos.backend.entity.PasswordResetToken;
 import com.turnosmedicos.backend.entity.Usuario;
 import com.turnosmedicos.backend.enums.Rol;
 import com.turnosmedicos.backend.exception.ConflictoException;
+import com.turnosmedicos.backend.exception.DatosInvalidosException;
 import com.turnosmedicos.backend.repository.PacienteRepository;
 import com.turnosmedicos.backend.repository.PasswordResetTokenRepository;
 import com.turnosmedicos.backend.repository.UsuarioRepository;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -47,7 +49,10 @@ public class AuthService {
 
     @Transactional
     public RegistroResponseDTO registrar(RegistroRequestDTO request) {
-        Usuario usuario = usuarioRepository.findByDni(request.dni()).orElse(null);
+        // Busca puntualmente la fila PACIENTE de ese dni: si el mismo dni ya
+        // tiene una fila ADMINISTRADOR, el registro no debe tocarla (contexto.md
+        // seccion 6 - un mismo dni puede ser PACIENTE y ADMINISTRADOR a la vez).
+        Usuario usuario = usuarioRepository.findByDniAndRol(request.dni(), Rol.PACIENTE).orElse(null);
 
         if (usuario != null && usuario.getActivo()) {
             throw new ConflictoException("Ya existe un usuario activo con ese DNI");
@@ -91,9 +96,24 @@ public class AuthService {
     }
 
     public LoginResponseDTO login(LoginRequestDTO request) {
-        Usuario usuario = usuarioRepository.findByDni(request.dni())
+        List<Usuario> activosConEseDni = usuarioRepository.findByDni(request.dni()).stream()
                 .filter(Usuario::getActivo)
-                .orElseThrow(() -> new BadCredentialsException("DNI o contraseña incorrectos"));
+                .toList();
+
+        Usuario usuario;
+        if (request.rol() != null) {
+            usuario = activosConEseDni.stream()
+                    .filter(u -> u.getRol() == request.rol())
+                    .findFirst()
+                    .orElseThrow(() -> new BadCredentialsException("DNI o contraseña incorrectos"));
+        } else if (activosConEseDni.size() > 1) {
+            throw new DatosInvalidosException(
+                    "Ese DNI tiene más de un rol activo; indicá con cuál querés ingresar");
+        } else {
+            usuario = activosConEseDni.stream()
+                    .findFirst()
+                    .orElseThrow(() -> new BadCredentialsException("DNI o contraseña incorrectos"));
+        }
 
         if (!passwordEncoder.matches(request.contrasena(), usuario.getContrasena())) {
             throw new BadCredentialsException("DNI o contraseña incorrectos");

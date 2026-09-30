@@ -55,7 +55,7 @@
     color:var(--ink);
     font-family:"Public Sans","Segoe UI",system-ui,sans-serif;
     font-size:16px;
-    line-height:1.55;
+    line-height:1.6;
     padding-inline:20px;
     padding-block:36px 80px;
   }
@@ -117,6 +117,23 @@
     transition:width .3s ease;
   }
 
+  /* ---------- glosario ---------- */
+  .glosario{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .glosario h2{font-size:17px; margin-bottom:12px;}
+  .glosario dl{margin:0; display:flex; flex-direction:column; gap:11px;}
+  .glosario dt{
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    color:var(--accent);
+    font-size:14px;
+  }
+  .glosario dd{margin:2px 0 0; font-size:14.5px; color:var(--ink-muted);}
+
   /* ---------- credenciales ---------- */
   .credenciales{
     background:var(--surface);
@@ -130,7 +147,6 @@
     border-collapse:collapse;
     font-size:14.5px;
   }
-  table caption{ text-align:left; }
   th,td{
     text-align:left;
     padding:7px 10px 7px 0;
@@ -156,7 +172,7 @@
     padding:18px 20px;
   }
   .prereqs h2{font-size:17px; margin-bottom:10px;}
-  .prereqs ul{margin:0; padding-left:1.15em; display:flex; flex-direction:column; gap:6px;}
+  .prereqs ul{margin:0; padding-left:1.15em; display:flex; flex-direction:column; gap:8px;}
   .prereqs li::marker{color:var(--accent);}
 
   /* ---------- pasos ---------- */
@@ -211,6 +227,21 @@
   .paso p{margin:0;}
   .paso p.explica{color:var(--ink-muted); font-size:15px;}
 
+  .clicks{
+    margin:0;
+    padding-left:1.4em;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    font-size:15px;
+  }
+  .clicks li::marker{
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--accent);
+    font-weight:600;
+  }
+  .clicks b{color:var(--ink);}
+
   .request{
     border:1px solid var(--border);
     border-radius:9px;
@@ -260,16 +291,6 @@
     line-height:1.5;
   }
   .field pre{background:transparent; padding:0;}
-  .hdr-kv{
-    font-family:"IBM Plex Mono",monospace;
-    font-size:13.5px;
-    background:var(--mono-bg);
-    padding:10px 12px;
-    border-radius:7px;
-    overflow-x:auto;
-    white-space:nowrap;
-  }
-  .hdr-kv .k2{color:var(--ink-muted);}
 
   .resultado{
     display:flex;
@@ -381,37 +402,47 @@
   <header class="intro">
     <span class="eyebrow">Sistema de Gestión de Turnos Médicos · Backend</span>
     <h1>Ronda de pruebas</h1>
-    <p>Guía para probar, con Postman, lo que se subió esta semana: registro, login, permisos por rol y algunos endpoints que dependían de eso. No hace falta saber programar — vas copiando y pegando.</p>
+    <p>Guía para probar lo que se subió esta semana. Está escrita para alguien que <strong>nunca usó una terminal ni Postman</strong> — vamos a explicar cada botón, cada palabra rara y cada ventana. No hace falta saber programar, solo ir siguiendo los pasos en orden.</p>
     <div class="progress">
-      <span id="progreso-texto">0/7 pasos marcados</span>
+      <span id="progreso-texto">0/12 pasos marcados</span>
       <span class="track"><span class="fill" id="progreso-fill"></span></span>
     </div>
   </header>
 
-  <div class="prereqs">
-    <h2>Antes de empezar</h2>
-    <ul>
-      <li>Tenés el código actualizado (<code>git pull</code> de la rama que te pasaron).</li>
-      <li>PostgreSQL está corriendo en tu máquina.</li>
-      <li>Tu <code>application.properties</code> tiene <code>spring.datasource.*</code>, <code>jwt.secret</code> y <code>spring.mail.*</code> completos (aunque sea con datos de prueba — sin <code>spring.mail.host</code> el backend no arranca).</li>
-      <li>Tenés <a href="https://www.postman.com/downloads/" target="_blank" rel="noopener">Postman</a> instalado.</li>
-    </ul>
+  <div class="glosario">
+    <h2>Antes de arrancar: 5 palabras que vas a ver todo el tiempo</h2>
+    <dl>
+      <div>
+        <dt>Backend</dt>
+        <dd>El programa que corre en tu propia computadora y contesta las preguntas que le hacemos (por ejemplo "dame la lista de pacientes"). Pensalo como la cocina de un restaurante: Postman es el mozo que pide, el backend es la cocina que prepara la respuesta. Si la cocina está cerrada (el backend no está prendido), no importa cuántas veces pidas: nadie contesta.</dd>
+      </div>
+      <div>
+        <dt>Terminal</dt>
+        <dd>Una ventana negra (o gris) donde en vez de hacer clic, le escribís órdenes a la computadora con el teclado y apretás Enter. La vamos a usar solo para prender el backend.</dd>
+      </div>
+      <div>
+        <dt>Postman</dt>
+        <dd>Un programa con botones que te permite "hacerle preguntas" al backend sin escribir código. Es la herramienta principal de esta guía.</dd>
+      </div>
+      <div>
+        <dt>Token</dt>
+        <dd>Una especie de pulsera de acceso digital. Cuando iniciás sesión, el backend te da un token; se lo mostrás en cada pedido siguiente para probar quién sos, sin tener que escribir tu contraseña de nuevo cada vez.</dd>
+      </div>
+      <div>
+        <dt>Código de estado</dt>
+        <dd>Un número de 3 cifras que viene con cada respuesta. <span class="mono">200</span> o <span class="mono">201</span> = salió bien. <span class="mono">401</span>, <span class="mono">403</span>, <span class="mono">404</span>, <span class="mono">409</span> = algo esperable no se cumplió (te explicamos cuál es cuál en cada paso).</dd>
+      </div>
+    </dl>
   </div>
 
-  <div class="credenciales">
-    <h2>Usuarios ya cargados (datos de prueba)</h2>
-    <div class="tabla-wrap">
-      <table>
-        <thead>
-          <tr><th>Rol</th><th>DNI</th><th>Contraseña</th><th>Quién es</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>ADMINISTRADOR</td><td class="mono">30111222</td><td class="mono">123456</td><td>La médica</td></tr>
-          <tr><td>PACIENTE</td><td class="mono">32111222</td><td class="mono">123456</td><td>Juan Pérez (paciente id 1)</td></tr>
-          <tr><td>PACIENTE</td><td class="mono">33222111</td><td class="mono">123456</td><td>María Gómez (paciente id 2)</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="prereqs">
+    <h2>Qué tenés que tener abierto o instalado</h2>
+    <ul>
+      <li><strong>El proyecto abierto en VS Code</strong> (el editor de código), con el código actualizado (<code>git pull</code> de la rama que te pasaron).</li>
+      <li><strong>PostgreSQL</strong> corriendo en tu máquina (es la base de datos — normalmente se prende sola cuando arranca Windows, no hace falta que hagas nada).</li>
+      <li>Tu archivo <code>application.properties</code> completo (te lo tienen que haber ayudado a armar antes; si no lo tenés, avisá antes de seguir).</li>
+      <li><strong>Postman</strong> instalado. Si no lo tenés: entrá a <a href="https://www.postman.com/downloads/" target="_blank" rel="noopener">postman.com/downloads</a>, descargalo e instalalo como cualquier programa (Siguiente, Siguiente, Instalar).</li>
+    </ul>
   </div>
 
   <section class="pasos">
@@ -420,16 +451,20 @@
       <div class="paso-head">
         <span class="chip">1</span>
         <div class="paso-titulo">
-          <h3>Levantá el backend</h3>
-          <span class="sub">Terminal, en la carpeta del proyecto</span>
+          <h3>Encontrar la terminal dentro de VS Code</h3>
+          <span class="sub">La vas a necesitar para el paso 2</span>
         </div>
         <label class="check"><input type="checkbox" data-step="1"> listo</label>
       </div>
-      <pre>cd backend
-.\mvnw.cmd spring-boot:run</pre>
+      <p class="explica">Con el proyecto abierto en VS Code (si no lo está: <strong>File → Open Folder</strong> y elegís la carpeta <code>gestion-turnos-database</code>):</p>
+      <ol class="clicks">
+        <li>Mirá el menú de arriba de todo de la ventana de VS Code.</li>
+        <li>Hacé clic en <b>Terminal</b> (entre "Run" y "Help").</li>
+        <li>Hacé clic en <b>New Terminal</b> (Nueva terminal).</li>
+      </ol>
       <div class="resultado">
         <span class="pill ok">esperado</span>
-        <div class="txt"><strong>Started BackendApplication in ... seconds</strong>Dejá esa terminal abierta todo el tiempo que estés probando. Si la cerrás, se apaga el backend y Postman deja de poder conectarse.</div>
+        <div class="txt"><strong>Se abre un panel abajo de todo de la pantalla</strong>, con letras y un cursor titilando. Ahí es donde vamos a escribir en el paso 2. Si ya tenías una terminal abierta de antes, esa misma sirve.</div>
       </div>
     </div>
 
@@ -437,48 +472,41 @@
       <div class="paso-head">
         <span class="chip">2</span>
         <div class="paso-titulo">
-          <h3>Iniciá sesión</h3>
-          <span class="sub">Todas las URLs de esta guía empiezan con <code>http://localhost:8080/api/v1</code></span>
+          <h3>Levantar (prender) el backend</h3>
+          <span class="sub">Escribí esto en la terminal que abriste en el paso 1</span>
         </div>
         <label class="check"><input type="checkbox" data-step="2"> listo</label>
       </div>
-      <p class="explica">En Postman: pestaña <strong>Body</strong> → marcá <strong>raw</strong> → en el desplegable de la derecha elegí <strong>JSON</strong> (por defecto dice "Text", hay que cambiarlo).</p>
-      <div class="request">
-        <div class="bar"><span class="method">POST</span><span class="path">/auth/login</span></div>
-        <div class="field">
-          <span class="k">Body (raw, JSON)</span>
-          <pre>{
-  "dni": "32111222",
-  "contrasena": "123456"
-}</pre>
-        </div>
-      </div>
+      <p class="explica">"Levantar el backend" significa: prender ese programa para que quede escuchando pedidos. Escribí la primera línea, apretá Enter, esperá que termine, escribí la segunda línea y apretá Enter:</p>
+      <pre>cd backend
+.\mvnw.cmd spring-boot:run</pre>
+      <p class="explica"><code>cd backend</code> quiere decir "entrá a la carpeta llamada backend". La segunda línea es la que efectivamente prende el programa.</p>
       <div class="resultado">
-        <span class="pill ok">200</span>
-        <div class="txt"><strong>Te devuelve un token y el rol</strong><code>{ "token": "eyJhbG...", "rol": "PACIENTE" }</code>. Copiá el valor de <code>token</code> — lo vas a necesitar en todos los pasos siguientes. Es como una pulsera de identificación: sin ella, el sistema no sabe quién sos.</div>
+        <span class="pill ok">esperado</span>
+        <div class="txt"><strong>Van a pasar muchas líneas de texto rápido — no hace falta leerlas.</strong> Esperá (la primera vez puede tardar más de un minuto) hasta ver una línea parecida a <code>Started BackendApplication in ... seconds</code>. Eso confirma que quedó prendido.</div>
       </div>
+      <p class="tip">Importantísimo: <b>no cierres esa terminal</b> ni apretes nada ahí adentro después de esto. Dejala abierta de fondo (podés minimizar VS Code) y pasate a Postman para el resto de la guía. Si la cerrás, el backend se apaga y Postman deja de poder conectarse.</p>
     </div>
 
     <div class="paso" data-paso="3">
       <div class="paso-head">
         <span class="chip">3</span>
         <div class="paso-titulo">
-          <h3>Probá un endpoint protegido</h3>
-          <span class="sub">Acá usás el token por primera vez</span>
+          <h3>Abrir Postman y traer los pedidos ya armados</h3>
+          <span class="sub">Una sola vez — después queda guardado</span>
         </div>
         <label class="check"><input type="checkbox" data-step="3"> listo</label>
       </div>
-      <p class="explica">Pestaña <strong>Headers</strong> (al lado de Body) → agregá una fila: Key <code>Authorization</code>, Value <code>Bearer </code> + el token que copiaste (con un espacio después de "Bearer", sin comillas).</p>
-      <div class="request">
-        <div class="bar"><span class="method">GET</span><span class="path">/financiadores</span></div>
-        <div class="field">
-          <span class="k">Headers</span>
-          <div class="hdr-kv">Authorization: <span class="k2">Bearer eyJhbG...</span></div>
-        </div>
-      </div>
+      <p class="explica">Abrí el programa Postman (buscalo como abrirías cualquier programa, por el ícono o desde el buscador de Windows). Si te pide crear una cuenta o iniciar sesión, se puede omitir ese paso ("Skip" / "Continue without account") — no hace falta cuenta para lo que vamos a hacer.</p>
+      <ol class="clicks">
+        <li>Arriba a la izquierda, buscá el botón <b>Import</b> y hacé clic.</li>
+        <li>Se abre una ventana. Hacé clic en <b>Choose Files</b> (Elegir archivos).</li>
+        <li>Buscá, dentro de la carpeta del proyecto, el archivo <code>docs/turnos-medicos.postman_collection.json</code> y seleccionalo.</li>
+        <li>Hacé clic en el botón azul <b>Import</b> para confirmar.</li>
+      </ol>
       <div class="resultado">
-        <span class="pill ok">200</span>
-        <div class="txt"><strong>Lista de financiadores: IOMA y OSDE</strong>Esto antes daba <span class="pill err" style="vertical-align:middle;">403</span> para un paciente — era un bug que ya se corrigió. Si te sigue dando 403, avisá.</div>
+        <span class="pill ok">esperado</span>
+        <div class="txt"><strong>A la izquierda te aparece "Turnos Médicos"</strong>, en la pestaña <b>Collections</b>. Hacé clic en el nombre para desplegarlo — vas a ver carpetas como "Auth", "Financiadores", "Coberturas", etc. Cada una tiene adentro los pedidos ya armados, con la dirección y los datos cargados. No vamos a escribir ningún JSON a mano en toda esta guía.</div>
       </div>
     </div>
 
@@ -486,22 +514,19 @@
       <div class="paso-head">
         <span class="chip">4</span>
         <div class="paso-titulo">
-          <h3>Confirmá que los permisos frenan a un paciente</h3>
-          <span class="sub">Mismo token del paso 2 (paciente)</span>
+          <h3>Mandar tu primer pedido: iniciar sesión</h3>
+          <span class="sub">Carpeta <b>Auth</b> → <b>Login (paciente - Juan Pérez)</b></span>
         </div>
         <label class="check"><input type="checkbox" data-step="4"> listo</label>
       </div>
-      <p class="explica">Mismo header <code>Authorization</code> de antes. Esta vez intentá <em>crear</em> un financiador — eso es tarea del administrador, no del paciente.</p>
-      <div class="request">
-        <div class="bar"><span class="method">POST</span><span class="path">/financiadores</span></div>
-        <div class="field">
-          <span class="k">Body (raw, JSON)</span>
-          <pre>{ "nombre": "Swiss Medical" }</pre>
-        </div>
-      </div>
+      <p class="explica">Desplegá la carpeta <b>Auth</b> (clic en el nombre) y hacé clic en <b>Login (paciente - Juan Pérez)</b> — se abre en el panel principal, a la derecha.</p>
+      <ol class="clicks">
+        <li>Arriba vas a ver <span class="method" style="font-size:11px;">POST</span> y una dirección terminada en <code>/auth/login</code> — es a dónde se manda el pedido. No hace falta tocar nada.</li>
+        <li>Buscá el botón azul <b>Send</b>, arriba a la derecha de esa dirección, y hacé clic.</li>
+      </ol>
       <div class="resultado">
-        <span class="pill err">403</span>
-        <div class="txt"><strong>Sin permisos — y así tiene que ser</strong>Un 403 acá es el resultado correcto: confirma que un paciente no puede crear datos de administración.</div>
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Abajo aparece la respuesta</strong>: un número en verde (<code>200 OK</code>) y, debajo, texto con <code>token</code> y <code>rol: "PACIENTE"</code>. No hace falta copiar el token a mano — Postman ya lo guardó solo para usarlo en los pedidos siguientes.</div>
       </div>
     </div>
 
@@ -509,17 +534,15 @@
       <div class="paso-head">
         <span class="chip">5</span>
         <div class="paso-titulo">
-          <h3>Probá "mis coberturas"</h3>
-          <span class="sub">Sigue siendo el token de Juan Pérez (paciente id 1)</span>
+          <h3>Probar un pedido que necesita el token</h3>
+          <span class="sub">Carpeta <b>Financiadores</b> → <b>Listar</b></span>
         </div>
         <label class="check"><input type="checkbox" data-step="5"> listo</label>
       </div>
-      <div class="request">
-        <div class="bar"><span class="method">GET</span><span class="path">/coberturas?idPaciente=1</span></div>
-      </div>
+      <p class="explica">Mismo mecanismo que el paso anterior: desplegá <b>Financiadores</b>, abrí <b>Listar</b>, apretá <b>Send</b>.</p>
       <div class="resultado">
         <span class="pill ok">200</span>
-        <div class="txt"><strong>Solo las coberturas de ese paciente</strong>Este era el bug más importante que se corrigió: antes ni el propio paciente podía ver su lista de coberturas.</div>
+        <div class="txt"><strong>Lista de financiadores: IOMA y OSDE</strong>. Esto antes fallaba con <span class="pill err" style="vertical-align:middle;">403</span> para un paciente — era un bug que ya se corrigió. Si te sigue dando 403, avisá.</div>
       </div>
     </div>
 
@@ -527,29 +550,15 @@
       <div class="paso-head">
         <span class="chip">6</span>
         <div class="paso-titulo">
-          <h3>Registrá un paciente nuevo</h3>
-          <span class="sub">No hace falta token para este — es autorregistro</span>
+          <h3>Confirmar que los permisos frenan a un paciente</h3>
+          <span class="sub">Carpeta <b>Financiadores</b> → <b>Crear (admin)</b></span>
         </div>
         <label class="check"><input type="checkbox" data-step="6"> listo</label>
       </div>
-      <p class="explica">Usá un DNI que no exista todavía. Si repetís el mismo DNI en un segundo intento, va a dar <span class="pill err" style="vertical-align:middle;">409</span> (ya existe) — es esperable, cambiá el DNI y el email.</p>
-      <div class="request">
-        <div class="bar"><span class="method">POST</span><span class="path">/auth/register</span></div>
-        <div class="field">
-          <span class="k">Body (raw, JSON)</span>
-          <pre>{
-  "dni": "41000111",
-  "contrasena": "123456",
-  "nombreApellido": "Ana Testigo",
-  "email": "ana.testigo@gmail.com",
-  "celular": "1133445566",
-  "fechaNacimiento": "1998-03-10"
-}</pre>
-        </div>
-      </div>
+      <p class="explica">Seguís logueado como paciente (paso 4). Ahora abrí <b>Crear (admin)</b> dentro de la misma carpeta y apretá <b>Send</b> — esa acción es tarea del administrador, no del paciente.</p>
       <div class="resultado">
-        <span class="pill ok">201</span>
-        <div class="txt"><strong>{ idUsuario, idPaciente, mensaje: "Registro exitoso." }</strong>Probá loguearte después con ese mismo dni y contraseña (paso 2) para confirmar que quedó bien creado, con rol PACIENTE.</div>
+        <span class="pill err">403</span>
+        <div class="txt"><strong>Sin permisos — y así tiene que ser</strong>. Un 403 acá es el resultado correcto: confirma que un paciente no puede crear datos de administración.</div>
       </div>
     </div>
 
@@ -557,77 +566,157 @@
       <div class="paso-head">
         <span class="chip">7</span>
         <div class="paso-titulo">
-          <h3>Repetí todo, pero como administradora</h3>
-          <span class="sub">Logueate con dni 30111222 (paso 2) y guardá ese token nuevo</span>
+          <h3>Ver "mis propias" coberturas</h3>
+          <span class="sub">Carpeta <b>Coberturas</b> → <b>Listar mis coberturas (paciente)</b></span>
         </div>
         <label class="check"><input type="checkbox" data-step="7"> listo</label>
       </div>
-      <p class="explica">Con el token de la médica, este endpoint sí tiene que andar — es información interna, solo para administración:</p>
-      <div class="request">
-        <div class="bar"><span class="method">GET</span><span class="path">/usuarios</span></div>
-        <div class="field">
-          <span class="k">Headers</span>
-          <div class="hdr-kv">Authorization: <span class="k2">Bearer eyJhbG...</span> (el de la médica)</div>
-        </div>
-      </div>
+      <p class="explica">Abrí ese pedido y apretá <b>Send</b>. Juan Pérez es el paciente id 1 en los datos de prueba, y ese id ya viene cargado en el pedido.</p>
       <div class="resultado">
         <span class="pill ok">200</span>
-        <div class="txt"><strong>Lista completa de usuarios</strong>Si probás esto mismo con el token de un paciente, tiene que dar 403 — esa es la diferencia entre roles funcionando.</div>
+        <div class="txt"><strong>Solo las coberturas de ese paciente</strong>. Este era el bug más importante que se corrigió: antes ni el propio paciente podía ver su lista de coberturas.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="8">
+      <div class="paso-head">
+        <span class="chip">8</span>
+        <div class="paso-titulo">
+          <h3>Registrar un paciente nuevo</h3>
+          <span class="sub">Carpeta <b>Auth</b> → <b>Registrar paciente nuevo</b></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="8"> listo</label>
+      </div>
+      <p class="explica">Este pedido no necesita token — cualquiera se puede registrar. Abrilo y apretá <b>Send</b> tal cual está.</p>
+      <div class="resultado">
+        <span class="pill ok">201</span>
+        <div class="txt"><strong>{ idUsuario, idPaciente, mensaje: "Registro exitoso." }</strong> Si lo volvés a mandar sin cambiar nada, va a dar <span class="pill err" style="vertical-align:middle;">409</span> (ya existe alguien con ese DNI) — es esperable. Para repetirlo, hacé clic en la pestaña <b>Body</b> de ese pedido y cambiá el número de <code>dni</code> y el <code>email</code> por otros.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="9">
+      <div class="paso-head">
+        <span class="chip">9</span>
+        <div class="paso-titulo">
+          <h3>Repetir todo, pero como administradora</h3>
+          <span class="sub">Carpeta <b>Auth</b> → <b>Login (administradora - médica)</b></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="9"> listo</label>
+      </div>
+      <p class="explica">Abrí ese pedido y apretá <b>Send</b> — reemplaza el token guardado por uno de administradora. Ahora abrí <b>Usuarios → Listar (admin)</b> y apretá <b>Send</b>: con este token sí tiene que andar, porque es información interna de administración.</p>
+      <div class="resultado">
+        <span class="pill ok">200</span>
+        <div class="txt"><strong>Lista completa de usuarios</strong>. Si volvés a hacer login como paciente (paso 4) y probás este mismo pedido de nuevo, tiene que dar 403 — esa es la diferencia entre roles funcionando.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="10">
+      <div class="paso-head">
+        <span class="chip">10</span>
+        <div class="paso-titulo">
+          <h3>Registrar la consulta de un turno atendido</h3>
+          <span class="sub">Carpeta <b>Consultas médicas</b> → <b>Crear (desde un turno CONFIRMADO)</b></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="10"> listo</label>
+      </div>
+      <p class="explica">Seguís con el token de administradora del paso 9. Abrí ese pedido (ya trae <code>idTurno: 3</code>, un turno confirmado de los datos de prueba) y apretá <b>Send</b>.</p>
+      <div class="resultado">
+        <span class="pill ok">201</span>
+        <div class="txt"><strong>Anotá el número <code>id</code> que te devuelve</strong> (es el id de la consulta) — lo vas a necesitar en el paso 11. Si volvés a mandar este mismo pedido, va a dar <span class="pill err" style="vertical-align:middle;">409</span> (ese turno ya tiene una consulta cargada) — es esperable.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="11">
+      <div class="paso-head">
+        <span class="chip">11</span>
+        <div class="paso-titulo">
+          <h3>Cargar un diagnóstico</h3>
+          <span class="sub">Carpeta <b>Diagnósticos</b> → <b>Crear</b></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="11"> listo</label>
+      </div>
+      <p class="explica">Abrí ese pedido. Antes de apretar Send, hacé clic en la pestaña <b>Body</b> (debajo de la dirección) y reemplazá el número que acompaña a <code>"consultaId"</code> por el <code>id</code> que anotaste en el paso 10 (si es la primera vez que probás esto en tu base, puede que ya sea el mismo número y no haga falta tocar nada). Después apretá <b>Send</b>.</p>
+      <div class="resultado">
+        <span class="pill ok">201</span>
+        <div class="txt"><strong>Anotá el <code>id</code> del diagnóstico</strong> — lo vas a necesitar en el paso 12.</div>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="12">
+      <div class="paso-head">
+        <span class="chip">12</span>
+        <div class="paso-titulo">
+          <h3>Cargar el tratamiento</h3>
+          <span class="sub">Carpeta <b>Tratamientos</b> → <b>Crear</b></span>
+        </div>
+        <label class="check"><input type="checkbox" data-step="12"> listo</label>
+      </div>
+      <p class="explica">Mismo mecanismo: pestaña <b>Body</b>, reemplazá el número de <code>"idDiagnostico"</code> por el que anotaste en el paso 11, y apretá <b>Send</b>.</p>
+      <div class="resultado">
+        <span class="pill ok">201</span>
+        <div class="txt"><strong>{ id, idDiagnostico, descripcion, duracion, estado: "EN_CURSO" }</strong> Con esto cerraste la cadena completa: Turno → Consulta médica → Diagnóstico → Tratamiento. Como prueba extra: hacé login como paciente (paso 4) y probá <b>Diagnósticos → Listar</b> — tiene que dar 403, es información solo para administración.</div>
       </div>
     </div>
 
   </section>
 
   <section class="ref">
-    <h2>¿Querés probar tu propio módulo?</h2>
-    <p>El patrón es siempre el mismo: <code>GET</code> lista, <code>GET /{id}</code> uno solo, <code>POST</code> crea, <code>PUT /{id}</code> edita, <code>DELETE /{id}</code> da de baja (excepto Turno, que no tiene <code>DELETE</code>: se cancela con <code>PUT /{id}/cancelar</code>). Siempre con el header <code>Authorization</code> del paso 3.</p>
+    <h2>¿Querés probar otro pedido por tu cuenta?</h2>
+    <p>En el panel izquierdo de Postman, dentro de la colección, hay una carpeta para cada módulo. El patrón es siempre el mismo: <b>Listar</b> trae todos, <b>Obtener por id</b> trae uno solo, <b>Crear</b> agrega uno nuevo, <b>Actualizar</b> edita, <b>Eliminar</b> da de baja (excepto Turno, que se cancela en vez de eliminarse). Solo hace falta tener sesión iniciada (paso 4 o paso 9) antes.</p>
     <div class="ref-grid">
-      <div class="ref-card"><h4>Médicos</h4><span class="mono">/medicos</span><span class="quien">+ /medicos/{id}/horarios-disponibles</span></div>
+      <div class="ref-card"><h4>Médicos</h4><span class="mono">/medicos</span><span class="quien">CRUD completo + horarios-disponibles</span></div>
       <div class="ref-card"><h4>Pacientes</h4><span class="mono">/pacientes</span></div>
       <div class="ref-card"><h4>Disponibilidad</h4><span class="mono">/disponibilidades</span></div>
-      <div class="ref-card"><h4>Bloqueos</h4><span class="mono">/bloqueos</span><span class="quien">solo ADMINISTRADOR</span></div>
+      <div class="ref-card"><h4>Bloqueos</h4><span class="mono">/bloqueos</span><span class="quien">solo administradora</span></div>
       <div class="ref-card"><h4>Turnos</h4><span class="mono">/turnos</span></div>
-      <div class="ref-card"><h4>Consultas médicas</h4><span class="mono">/consultas-medicas</span><span class="quien">solo ADMINISTRADOR</span></div>
+      <div class="ref-card"><h4>Consultas médicas</h4><span class="mono">/consultas-medicas</span><span class="quien">solo administradora</span></div>
+      <div class="ref-card"><h4>Diagnósticos</h4><span class="mono">/diagnosticos</span><span class="quien">solo administradora</span></div>
+      <div class="ref-card"><h4>Tratamientos</h4><span class="mono">/tratamientos</span><span class="quien">solo administradora</span></div>
       <div class="ref-card"><h4>Coberturas</h4><span class="mono">/coberturas</span></div>
-      <div class="ref-card"><h4>Recuperar contraseña</h4><span class="mono">/auth/recuperar-contrasena/solicitar</span><span class="quien">necesita mail real configurado</span></div>
+      <div class="ref-card"><h4>Recuperar contraseña</h4><span class="mono">/auth/recuperar-contrasena</span><span class="quien">necesita mail real configurado</span></div>
     </div>
   </section>
 
   <section class="troubleshoot">
     <h2>Si algo no anda</h2>
-    <p>Antes de avisar, revisá esto — la mayoría de las veces es uno de estos cinco casos.</p>
+    <p>Antes de avisar, revisá esto — la mayoría de las veces es uno de estos casos.</p>
     <div class="diag-row">
       <div class="diag-item">
-        <span class="sintoma">Could not get response / ECONNREFUSED</span>
-        <span class="causa">El backend no está corriendo, o lo cerraste sin querer.</span>
-        <span class="solucion">Volvé al <b>paso 1</b> y fijate que la terminal siga abierta con "Started BackendApplication".</span>
+        <span class="sintoma">No encuentro la terminal / se me cerró</span>
+        <span class="causa">Se puede volver a abrir las veces que haga falta.</span>
+        <span class="solucion">Repetí el <b>paso 1</b> (menú <code>Terminal → New Terminal</code> en VS Code) y después el <b>paso 2</b> de nuevo.</span>
       </div>
       <div class="diag-item">
-        <span class="sintoma">BUILD FAILURE al arrancar</span>
-        <span class="causa">Falta configurar <code>application.properties</code> (base de datos, jwt.secret o mail).</span>
-        <span class="solucion">Copiá <code>application.properties.example</code> y completá las variables. Si sigue sin andar, avisá a Cami con el error completo.</span>
+        <span class="sintoma">Could not get response / ECONNREFUSED en Postman</span>
+        <span class="causa">El backend no está prendido, o la terminal se cerró y se apagó.</span>
+        <span class="solucion">Volvé al <b>paso 2</b> y fijate que la terminal siga abierta con la línea "Started BackendApplication".</span>
+      </div>
+      <div class="diag-item">
+        <span class="sintoma">BUILD FAILURE al escribir el comando del paso 2</span>
+        <span class="causa">Falta completar <code>application.properties</code> (base de datos, jwt.secret o mail).</span>
+        <span class="solucion">Avisá a Cami con el mensaje de error completo (podés seleccionarlo con el mouse en la terminal y copiarlo con Ctrl+C).</span>
       </div>
       <div class="diag-item">
         <span class="sintoma">401 No autenticado</span>
-        <span class="causa">Falta el header Authorization, está mal escrito, o el token venció.</span>
-        <span class="solucion">Revisá que diga exactamente <code>Bearer </code> + token, sin comillas. Si venció (pasaron 24hs), volvé a hacer <b>login</b>.</span>
+        <span class="causa">Todavía no hiciste login, o pasaron más de 24hs desde el último.</span>
+        <span class="solucion">Volvé a mandar el pedido de <b>Login</b> (paso 4 o 9) — el token se renueva solo, no hace falta tocar nada más.</span>
       </div>
       <div class="diag-item">
         <span class="sintoma">403 Sin permisos</span>
-        <span class="causa">Tu token es de un rol que no puede hacer esa acción.</span>
-        <span class="solucion">Es el comportamiento correcto en los pasos 4 y 7. Si te pasa en otro paso, avisá — puede ser un bug nuevo.</span>
+        <span class="causa">Tu sesión actual es de un rol que no puede hacer esa acción.</span>
+        <span class="solucion">Es el resultado correcto en el paso 6. Si te pasa en otro paso, avisá — puede ser un bug nuevo.</span>
       </div>
       <div class="diag-item">
         <span class="sintoma">409 Conflicto</span>
-        <span class="causa">Ya existe un registro con ese DNI / nombre.</span>
-        <span class="solucion">Cambiá el dato (por ejemplo el DNI del registro) y reintentá.</span>
+        <span class="causa">Ya existe un registro con esos mismos datos (DNI, turno, etc.).</span>
+        <span class="solucion">Cambiá el dato en la pestaña <b>Body</b> del pedido (por ejemplo el DNI) y volvé a apretar Send.</span>
       </div>
     </div>
   </section>
 
   <section class="cierre">
     <h2>¿Encontraste algo raro?</h2>
-    <p>Pasale a Cami: el paso donde pasó, el body que mandaste, y una captura de la respuesta completa de Postman (código de estado + JSON). Con eso alcanza para reproducirlo.</p>
+    <p>Pasale a Cami: el paso donde pasó y una captura de pantalla de Postman mostrando la respuesta completa (el número de código y el texto de abajo). Con eso alcanza para reproducirlo.</p>
   </section>
 
 </div>

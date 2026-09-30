@@ -38,8 +38,9 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO crear(UsuarioRequestDTO request) {
-        usuarioRepository.findByDni(request.dni()).ifPresent(u -> {
-            throw new ConflictoException("Ya existe un usuario con el DNI '" + request.dni() + "'");
+        usuarioRepository.findByDniAndRol(request.dni(), request.rol()).ifPresent(u -> {
+            throw new ConflictoException(
+                    "Ya existe un usuario " + request.rol() + " con el DNI '" + request.dni() + "'");
         });
 
         Usuario usuario = Usuario.builder()

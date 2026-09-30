@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record DiagnosticoRequestDTO(
 
         @NotNull
-        Integer consultaId,
+        Integer idConsulta,
 
         @NotBlank
         String descripcion

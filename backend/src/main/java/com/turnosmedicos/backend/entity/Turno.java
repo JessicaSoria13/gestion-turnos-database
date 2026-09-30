@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,11 +22,14 @@ import java.time.LocalTime;
 
 // Sin campo "activo": el turno nunca se elimina (ni fisica ni logicamente);
 // su ciclo de vida se maneja con el enum estado. No expone DELETE.
+//
+// La unicidad (id_medico, fecha, hora) NO se declara aca como @UniqueConstraint
+// de Hibernate porque tiene que excluir los turnos CANCELADO (un horario
+// cancelado se vuelve a ofrecer, contexto.md seccion 9). Se aplica como indice
+// unico parcial a mano en db/migracion-2026-09.sql, porque ddl-auto=update no
+// puede generar un indice condicional (WHERE) desde las anotaciones.
 @Entity
-@Table(name = "turno", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_turno_medico_horario",
-                columnNames = {"id_medico", "fecha", "hora"})
-})
+@Table(name = "turno")
 @Getter
 @Setter
 @NoArgsConstructor

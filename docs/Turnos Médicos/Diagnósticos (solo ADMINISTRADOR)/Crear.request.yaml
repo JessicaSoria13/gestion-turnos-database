@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/diagnosticos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idConsulta": 1,
+      "descripcion": "Hipertensión arterial leve"
+    }
+order: 4000

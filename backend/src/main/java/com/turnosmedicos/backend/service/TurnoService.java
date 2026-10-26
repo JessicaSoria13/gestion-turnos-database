@@ -18,6 +18,7 @@ import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
 import com.turnosmedicos.backend.enums.DiaSemana;
 import com.turnosmedicos.backend.enums.EstadoTurno;
 import com.turnosmedicos.backend.exception.DatosInvalidosException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -55,6 +56,18 @@ public class TurnoService {
         Turno turno = turnoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe turno con el id: " + id));
         return toResponseDTO(turno);
+    }
+
+    // El token solo trae el dni, no el id de paciente: lo resuelve a partir
+    // del dni del usuario autenticado (igual que PacienteService.obtenerPropio).
+    public List<TurnoResponseDTO> misTurnos() {
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        Paciente paciente = pacienteRepository.findByDni(dni)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un paciente asociado al dni " + dni));
+
+        return turnoRepository.findByPacienteIdOrderByFechaDescHoraDesc(paciente.getId()).stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
     public TurnoResponseDTO cancelar(Integer id, TurnoCancelacionRequestDTO request) {
         Turno turno = turnoRepository.findById(id)

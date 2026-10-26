@@ -46,7 +46,7 @@ public class Medico {
     @Column(name = "matricula", length = 20, nullable = false, unique = true)
     private String matricula;
 
-    // Un medico puede tener varias especialidades (ver contexto.md).
+    // Un medico puede tener varias especialidades.
     // Se modela en tabla aparte medico_especialidad, no como columna unica.
     @Builder.Default
     @ElementCollection

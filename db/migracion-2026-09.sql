@@ -9,14 +9,14 @@
 --
 -- 1) Usuario: la unicidad pasa de ser sobre "dni" solo a ser sobre
 --    (dni, rol) - un mismo dni puede tener una fila PACIENTE y otra
---    ADMINISTRADOR a la vez (contexto.md sección 6). ddl-auto=update
---    no borra una unique constraint vieja para reemplazarla por otra,
+--    ADMINISTRADOR a la vez. ddl-auto=update no borra una unique
+--    constraint vieja para reemplazarla por otra,
 --    así que si no se corre esto a mano, el constraint viejo sobre
 --    "dni" solo sigue ahí y bloquea la segunda fila.
 -- 2) Turno: la unicidad (id_medico, fecha, hora) tiene que excluir los
---    turnos CANCELADO (un horario cancelado se vuelve a ofrecer,
---    contexto.md sección 9). Eso es un índice único PARCIAL (con
---    WHERE), y Hibernate no puede generar ese tipo de índice desde las
+--    turnos CANCELADO (un horario cancelado se vuelve a ofrecer).
+--    Eso es un índice único PARCIAL (con WHERE), y Hibernate no
+--    puede generar ese tipo de índice desde las
 --    anotaciones de la entidad.
 -- ============================================================
 

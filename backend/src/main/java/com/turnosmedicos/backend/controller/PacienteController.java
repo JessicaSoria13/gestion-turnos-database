@@ -34,6 +34,12 @@ public class PacienteController {
         return pacienteService.listarActivos();
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('PACIENTE')")
+    public PacienteResponseDTO obtenerPropio() {
+        return pacienteService.obtenerPropio();
+    }
+
     @GetMapping("/{id}")
     public PacienteResponseDTO obtener(@PathVariable Integer id) {
         return pacienteService.obtenerPorId(id);

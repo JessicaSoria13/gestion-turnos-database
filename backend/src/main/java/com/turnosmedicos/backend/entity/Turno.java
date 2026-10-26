@@ -25,7 +25,7 @@ import java.time.LocalTime;
 //
 // La unicidad (id_medico, fecha, hora) NO se declara aca como @UniqueConstraint
 // de Hibernate porque tiene que excluir los turnos CANCELADO (un horario
-// cancelado se vuelve a ofrecer, contexto.md seccion 9). Se aplica como indice
+// cancelado se vuelve a ofrecer). Se aplica como indice
 // unico parcial a mano en db/migracion-2026-09.sql, porque ddl-auto=update no
 // puede generar un indice condicional (WHERE) desde las anotaciones.
 @Entity

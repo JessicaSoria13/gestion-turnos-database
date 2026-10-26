@@ -50,8 +50,8 @@ public class AuthService {
     @Transactional
     public RegistroResponseDTO registrar(RegistroRequestDTO request) {
         // Busca puntualmente la fila PACIENTE de ese dni: si el mismo dni ya
-        // tiene una fila ADMINISTRADOR, el registro no debe tocarla (contexto.md
-        // seccion 6 - un mismo dni puede ser PACIENTE y ADMINISTRADOR a la vez).
+        // tiene una fila ADMINISTRADOR, el registro no debe tocarla (un mismo dni
+        // puede ser PACIENTE y ADMINISTRADOR a la vez).
         Usuario usuario = usuarioRepository.findByDniAndRol(request.dni(), Rol.PACIENTE).orElse(null);
 
         if (usuario != null && usuario.getActivo()) {

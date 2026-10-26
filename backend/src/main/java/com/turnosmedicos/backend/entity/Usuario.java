@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 // Un mismo DNI puede tener dos filas de Usuario (una PACIENTE y otra
-// ADMINISTRADOR, contexto.md seccion 6) - por eso la unicidad es sobre
+// ADMINISTRADOR) - por eso la unicidad es sobre
 // (dni, rol), no sobre dni solo. Ver db/migracion-2026-09.sql: quien ya
 // tenia una base local con dni unico tiene que correr esa migracion a mano,
 // ddl-auto=update no reemplaza una unique constraint existente por otra.

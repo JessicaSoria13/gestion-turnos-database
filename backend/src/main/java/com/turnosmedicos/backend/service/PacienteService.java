@@ -9,6 +9,7 @@ import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.PacienteRepository;
 import com.turnosmedicos.backend.repository.UsuarioRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +33,15 @@ public class PacienteService {
 
     public PacienteResponseDTO obtenerPorId(Integer id) {
         return toResponseDTO(buscarPorId(id));
+    }
+
+    // El token solo trae el dni, no el id de paciente: lo resuelve a partir
+    // del dni del usuario autenticado (igual que hace el filtro JWT).
+    public PacienteResponseDTO obtenerPropio() {
+        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        return pacienteRepository.findByDni(dni)
+                .map(this::toResponseDTO)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un paciente asociado al dni " + dni));
     }
 
     public PacienteResponseDTO crear(PacienteRequestDTO request) {

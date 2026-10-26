@@ -34,6 +34,12 @@ public class TurnoController {
         return turnoService.listar();
     }
 
+    @GetMapping("/mis-turnos")
+    @PreAuthorize("hasRole('PACIENTE')")
+    public List<TurnoResponseDTO> misTurnos() {
+        return turnoService.misTurnos();
+    }
+
     @GetMapping("/{id}")
     public TurnoResponseDTO obtener(@PathVariable Integer id) {
         return turnoService.obtenerPorId(id);

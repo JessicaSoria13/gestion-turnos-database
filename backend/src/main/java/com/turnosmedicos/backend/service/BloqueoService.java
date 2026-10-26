@@ -84,7 +84,7 @@ public class BloqueoService {
 
     public void eliminar(Integer id) {
         // Baja lógica: vuelve a ofrecer los horarios del rango, pero NO restaura
-        // los turnos que el bloqueo hubiera cancelado (regla 9, contexto.md).
+        // los turnos que el bloqueo hubiera cancelado.
         Bloqueo bloqueo = buscarPorId(id);
         bloqueo.setActivo(false);
         bloqueoRepository.save(bloqueo);

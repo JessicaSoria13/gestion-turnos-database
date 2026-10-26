@@ -10,7 +10,9 @@ import java.util.List;
 
 public interface TurnoRepository extends JpaRepository<Turno, Integer> {
 
-    // Un turno CANCELADO no ocupa el horario (contexto.md, seccion 9, paso 4):
+    List<Turno> findByPacienteIdOrderByFechaDescHoraDesc(Integer idPaciente);
+
+    // Un turno CANCELADO no ocupa el horario:
     // este metodo lo excluye explicitamente para el calculo de horarios libres
     // y para el chequeo de choque al crear un turno nuevo.
     List<Turno> findByMedicoIdAndFechaAndEstadoNot(Integer medicoId, LocalDate fecha, EstadoTurno estadoExcluido);

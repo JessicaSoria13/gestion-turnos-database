@@ -16,12 +16,10 @@ backend/src/main/resources/application.properties
 *.iml
 .vscode/
 
-# Claude
-CLAUDE.local.md
-
 # Documentación personal de Camila (no compartir con el equipo)
-README.md
+GUIA-PERSONAL.md
 contexto.md
+docs/backend-resumen-presentacion.md
 
 # Sistema operativo
 .DS_Store

@@ -16,9 +16,8 @@ backend/src/main/resources/application.properties
 *.iml
 .vscode/
 
-# Documentación personal de Camila (no compartir con el equipo)
+# Notas personales (no forman parte del proyecto)
 GUIA-PERSONAL.md
-contexto.md
 docs/backend-resumen-presentacion.md
 
 # Sistema operativo

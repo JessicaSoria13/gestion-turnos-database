@@ -24,7 +24,7 @@ public class DiagnosticoService {
     }
 
     public List<DiagnosticoResponseDTO> listar() {
-        return diagnosticoRepository.findAll().stream()
+        return diagnosticoRepository.findByActivoTrue().stream()
                 .map(this::toResponseDTO)
                 .toList();
     }
@@ -36,7 +36,7 @@ public class DiagnosticoService {
     public List<DiagnosticoResponseDTO> listarPorConsulta(Integer consultaId) {
         buscarConsultaPorId(consultaId);
 
-        return diagnosticoRepository.findByConsulta_Id(consultaId).stream()
+        return diagnosticoRepository.findByConsulta_IdAndActivoTrue(consultaId).stream()
                 .map(this::toResponseDTO)
                 .toList();
     }
@@ -62,8 +62,15 @@ public class DiagnosticoService {
         return toResponseDTO(diagnosticoRepository.save(diagnostico));
     }
 
+    public void eliminar(Integer id) {
+        Diagnostico diagnostico = buscarPorId(id);
+        diagnostico.setActivo(false);
+        diagnosticoRepository.save(diagnostico);
+    }
+
     private Diagnostico buscarPorId(Integer id) {
         return diagnosticoRepository.findById(id)
+                .filter(Diagnostico::getActivo)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe el diagnóstico con id " + id));
     }

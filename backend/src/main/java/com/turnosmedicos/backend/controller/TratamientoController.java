@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +49,13 @@ public class TratamientoController {
     public TratamientoResponseDTO actualizar(@PathVariable Integer id,
                                              @Valid @RequestBody TratamientoRequestDTO request) {
         return tratamientoService.actualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        tratamientoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

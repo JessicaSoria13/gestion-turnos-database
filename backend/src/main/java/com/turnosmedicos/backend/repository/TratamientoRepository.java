@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface TratamientoRepository extends JpaRepository<Tratamiento, Integer> {
 
-	List<Tratamiento> findByDiagnosticoId(Integer diagnosticoId);
+    List<Tratamiento> findByActivoTrue();
+    List<Tratamiento> findByDiagnosticoIdAndActivoTrue(Integer diagnosticoId);
 
 }

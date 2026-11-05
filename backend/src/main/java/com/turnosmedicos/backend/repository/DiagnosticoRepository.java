@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface DiagnosticoRepository extends JpaRepository<Diagnostico, Integer> {
 
-	List<Diagnostico> findByConsulta_Id(Integer consultaId);
+	List<Diagnostico> findByActivoTrue();
+	List<Diagnostico> findByConsulta_IdAndActivoTrue(Integer consultaId);
 
 }

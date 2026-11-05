@@ -46,4 +46,8 @@ public class Tratamiento {
     @Column(name = "estado", nullable = false)
     private EstadoTratamiento estado = EstadoTratamiento.EN_CURSO;
 
+    @Builder.Default
+    @Column(name = "activo", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean activo = true;
+
 }

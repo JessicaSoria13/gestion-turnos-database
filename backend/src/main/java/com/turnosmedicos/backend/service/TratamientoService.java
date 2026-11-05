@@ -26,12 +26,12 @@ public class TratamientoService {
     public List<TratamientoResponseDTO> listar(Integer idDiagnostico) {
         if (idDiagnostico != null) {
             buscarDiagnostico(idDiagnostico);
-            return tratamientoRepository.findByDiagnosticoId(idDiagnostico).stream()
+            return tratamientoRepository.findByDiagnosticoIdAndActivoTrue(idDiagnostico).stream()
                     .map(this::toResponseDTO)
                     .toList();
         }
 
-        return tratamientoRepository.findAll().stream()
+        return tratamientoRepository.findByActivoTrue().stream()
                 .map(this::toResponseDTO)
                 .toList();
     }
@@ -63,8 +63,15 @@ public class TratamientoService {
         return toResponseDTO(tratamientoRepository.save(tratamiento));
     }
 
+    public void eliminar(Integer id) {
+        Tratamiento tratamiento = buscarPorId(id);
+        tratamiento.setActivo(false);
+        tratamientoRepository.save(tratamiento);
+    }
+
     private Tratamiento buscarPorId(Integer id) {
         return tratamientoRepository.findById(id)
+                .filter(Tratamiento::getActivo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el tratamiento con id " + id));
     }
 

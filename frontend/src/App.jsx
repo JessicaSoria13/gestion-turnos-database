@@ -6,6 +6,7 @@ import Login from './pages/auth/Login'
 import Registro from './pages/auth/Registro'
 import RecuperarContrasena from './pages/auth/RecuperarContrasena'
 import ReservarTurno from './pages/turnos/ReservarTurno'
+import MisTurnos from './pages/turnos/MisTurnos'
 
 export default function App() {
   return (
@@ -16,7 +17,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route element={<RutaProtegida rolRequerido="PACIENTE" />}>
           <Route path="/paciente/reservar" element={<ReservarTurno />} />
-          <Route path="/paciente/mis-turnos" element={<EnConstruccion titulo="Mis turnos" />} />
+          <Route path="/paciente/mis-turnos" element={<MisTurnos />} />
         </Route>
         <Route element={<RutaProtegida rolRequerido="ADMINISTRADOR" />}>
           <Route path="/admin/agenda" element={<EnConstruccion titulo="Agenda" />} />

@@ -5,6 +5,7 @@ import EnConstruccion from './pages/EnConstruccion'
 import Login from './pages/auth/Login'
 import Registro from './pages/auth/Registro'
 import RecuperarContrasena from './pages/auth/RecuperarContrasena'
+import ReservarTurno from './pages/turnos/ReservarTurno'
 
 export default function App() {
   return (
@@ -14,7 +15,7 @@ export default function App() {
       <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
       <Route element={<Layout />}>
         <Route element={<RutaProtegida rolRequerido="PACIENTE" />}>
-          <Route path="/paciente/reservar" element={<EnConstruccion titulo="Reservar turno" />} />
+          <Route path="/paciente/reservar" element={<ReservarTurno />} />
           <Route path="/paciente/mis-turnos" element={<EnConstruccion titulo="Mis turnos" />} />
         </Route>
         <Route element={<RutaProtegida rolRequerido="ADMINISTRADOR" />}>

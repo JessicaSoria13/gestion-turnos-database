@@ -36,13 +36,17 @@ CREATE TYPE estado_tratamiento AS ENUM ('EN_CURSO', 'FINALIZADO', 'SUSPENDIDO');
 -- ------------------------------------------------------------
 -- 1. USUARIO
 -- Credenciales de acceso al sistema.
+-- Un mismo DNI puede ser PACIENTE y ADMINISTRADOR a la vez
+-- (una fila por rol): la unicidad es por (dni, rol), no por
+-- dni solo. Ver db/migracion-2026-09.sql.
 -- ------------------------------------------------------------
 CREATE TABLE usuario (
     id_usuario      INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    dni             VARCHAR(10)  NOT NULL UNIQUE,
+    dni             VARCHAR(10)  NOT NULL,
     contrasena      VARCHAR(255) NOT NULL,
     rol             rol_usuario  NOT NULL,
-    activo          BOOLEAN      NOT NULL DEFAULT TRUE
+    activo          BOOLEAN      NOT NULL DEFAULT TRUE,
+    CONSTRAINT uq_usuario_dni_rol UNIQUE (dni, rol)
 );
 
 -- ------------------------------------------------------------
@@ -149,6 +153,10 @@ CREATE TABLE cobertura (
 -- particular. Nunca se eliminan: la cancelación es por estado.
 -- motivo_cancelacion se completa al cancelar (obligatorio si
 -- cancela el médico, directa o vía bloqueo).
+-- Un horario del médico no puede tener dos turnos activos, pero
+-- un turno CANCELADO libera el horario para volver a reservarlo:
+-- por eso la unicidad es un índice único parcial (abajo), no un
+-- UNIQUE común. Ver db/migracion-2026-09.sql.
 -- ------------------------------------------------------------
 CREATE TABLE turno (
     id_turno           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -160,9 +168,12 @@ CREATE TABLE turno (
     hora               TIME         NOT NULL,
     estado             estado_turno NOT NULL DEFAULT 'CONFIRMADO',
     motivo_consulta    VARCHAR(255),
-    motivo_cancelacion VARCHAR(255),
-    CONSTRAINT uq_turno_medico_horario UNIQUE (id_medico, fecha, hora)
+    motivo_cancelacion VARCHAR(255)
 );
+
+CREATE UNIQUE INDEX uq_turno_medico_horario_activo
+    ON turno (id_medico, fecha, hora)
+    WHERE estado <> 'CANCELADO';
 
 -- ------------------------------------------------------------
 -- 9. CONSULTA_MEDICA

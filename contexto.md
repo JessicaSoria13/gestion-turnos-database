@@ -118,6 +118,12 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 - JWT ya implementado (`security/JwtAuthFilter`, `JwtService`). `POST /api/v1/auth/login` valida DNI + contraseña y devuelve `{ token, rol }`.
 - `/api/v1/auth/**` es público; todo lo demás requiere token.
 - Restringir por rol con `@PreAuthorize("hasRole('ADMINISTRADOR')")` o `hasRole('PACIENTE')` en el controller.
+- **Control de propiedad:** `@PreAuthorize` solo mira el rol. Para que un PACIENTE opere únicamente sobre
+  **sus** datos (turnos, coberturas, ficha y cuenta), el service llama a `security/UsuarioActual`
+  (`verificarPaciente(...)`, `verificarUsuario(...)`). Si no es suyo → **403**. El ADMINISTRADOR gestiona a
+  todos. Todo endpoint nuevo que reciba un id de paciente, turno, cobertura o usuario tiene que usarlo.
+- **Quién cancela un turno** lo decide el rol del token, no el body: si cancela el ADMINISTRADOR, cuenta
+  como el médico y el motivo es obligatorio (regla 6).
 - Contraseñas **siempre** con `BCryptPasswordEncoder`. Nunca en texto plano ni en respuestas.
 - Un mismo DNI puede existir como PACIENTE y ADMINISTRADOR; elige el rol al ingresar.
 

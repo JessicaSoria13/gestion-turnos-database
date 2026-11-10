@@ -9,6 +9,7 @@ import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.PacienteRepository;
 import com.turnosmedicos.backend.repository.UsuarioRepository;
+import com.turnosmedicos.backend.security.UsuarioActual;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +20,13 @@ public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioActual usuarioActual;
 
-    public PacienteService(PacienteRepository pacienteRepository, UsuarioRepository usuarioRepository) {
+    public PacienteService(PacienteRepository pacienteRepository, UsuarioRepository usuarioRepository,
+                           UsuarioActual usuarioActual) {
         this.pacienteRepository = pacienteRepository;
         this.usuarioRepository = usuarioRepository;
+        this.usuarioActual = usuarioActual;
     }
 
     public List<PacienteResponseDTO> listarActivos() {
@@ -32,7 +36,9 @@ public class PacienteService {
     }
 
     public PacienteResponseDTO obtenerPorId(Integer id) {
-        return toResponseDTO(buscarPorId(id));
+        Paciente paciente = buscarPorId(id);
+        usuarioActual.verificarPaciente(paciente);
+        return toResponseDTO(paciente);
     }
 
     // El token solo trae el dni, no el id de paciente: lo resuelve a partir
@@ -75,6 +81,7 @@ public class PacienteService {
 
     public PacienteResponseDTO actualizar(Integer id, PacienteRequestDTO request) {
         Paciente paciente = buscarPorId(id);
+        usuarioActual.verificarPaciente(paciente);
 
         paciente.setNombreApellido(request.nombreApellido());
         paciente.setEmail(request.email());

@@ -7,7 +7,6 @@ body:
   type: json
   content: |-
     {
-      "canceladoPorMedico": true,
       "motivoCancelacion": "La médica tuvo una urgencia"
     }
 order: 5000

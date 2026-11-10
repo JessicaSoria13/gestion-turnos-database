@@ -10,6 +10,7 @@ import com.turnosmedicos.backend.entity.Usuario;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.UsuarioRepository;
+import com.turnosmedicos.backend.security.UsuarioActual;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,13 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioActual usuarioActual;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                          UsuarioActual usuarioActual) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.usuarioActual = usuarioActual;
     }
 
     public List<UsuarioResponseDTO> listarActivos() {
@@ -34,7 +38,9 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO obtenerPorId(Integer id) {
-        return toResponseDTO(buscarPorId(id));
+        Usuario usuario = buscarPorId(id);
+        usuarioActual.verificarUsuario(usuario);
+        return toResponseDTO(usuario);
     }
 
     public UsuarioResponseDTO crear(UsuarioRequestDTO request) {
@@ -54,6 +60,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO cambiarContrasena(Integer id, CambioContrasenaRequestDTO request) {
         Usuario usuario = buscarPorId(id);
+        usuarioActual.verificarUsuario(usuario);
 
         if (!passwordEncoder.matches(request.contrasenaActual(), usuario.getContrasena())) {
             throw new BadCredentialsException("La contraseña actual no es correcta");
@@ -66,6 +73,7 @@ public class UsuarioService {
 
     public void eliminar(Integer id) {
         Usuario usuario = buscarPorId(id);
+        usuarioActual.verificarUsuario(usuario);
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
     }

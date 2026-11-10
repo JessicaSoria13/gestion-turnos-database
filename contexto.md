@@ -33,8 +33,10 @@ El sistema corre **solo en local** (sin despliegue).
   (`spring.jpa.hibernate.ddl-auto=update`). **No** escribir DDL de creación de tablas a mano.
 
 **Frontend**
-- React + Vite (JavaScript, no TypeScript) y React Router.
-- Corre en `http://localhost:5173`; el backend ya acepta pedidos desde ese origen (CORS en `SecurityConfig`).
+- **Angular 22** (TypeScript, componentes standalone), por indicación del profe. Se basa en su
+  proyecto base: https://github.com/fborzi/angular.
+- Corre en `http://localhost:4200` con `npm start`. El proxy de desarrollo (`frontend/proxy.conf.mjs`)
+  redirige `/api` al backend en el 8081 y quita el header `Origin`, así que no hace falta CORS para el 4200.
 - Consume la API REST y envía el JWT en el header `Authorization: Bearer <token>`.
 - No agregar librerías sin acordarlo con el equipo.
 
@@ -47,7 +49,7 @@ Repositorio: `gestion-turnos-database` (https://github.com/JessicaSoria13/gestio
 ```
 gestion-turnos-database/
 ├── backend/     ← proyecto Spring Boot (paquete base com.turnosmedicos.backend)
-├── frontend/    ← proyecto React + Vite
+├── frontend/    ← proyecto Angular 22 (basado en el proyecto base del profe)
 ├── db/          ← crear-base.sql + datos-prueba.sql + migracion-2026-09.sql + schema.sql (informativo)
 ├── docs/        ← endpoints.md + colección de Postman (docs/Turnos Médicos/)
 ├── contexto.md  ← este archivo
@@ -109,7 +111,7 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 - ConsultaMedica 1–N Diagnostico · Diagnostico 1–N Tratamiento
 - Cobertura N–1 Financiador
 
-**Unicidad:** `usuario.dni` · `financiador.nombre` · `(medico, fecha, hora)` en turno ·
+**Unicidad:** `(dni, rol)` en usuario · `financiador.nombre` · `(medico, fecha, hora)` en turno, solo entre los no CANCELADO ·
 `(paciente, financiador, numeroAfiliado)` en cobertura.
 
 ## 6. Seguridad y roles (implementada)
@@ -172,28 +174,35 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 4. Descuenta los que tienen turno **CONFIRMADO** o **ATENDIDO** (los CANCELADO no descuentan).
 5. Devuelve los horarios libres.
 
-## 10. Frontend (React)
+## 10. Frontend (Angular)
 
-**Estructura de carpetas (`frontend/src/`):**
+Estructura del proyecto base del profe (`core/` + `features/`). Detalle y comandos en `frontend/README.md`.
+
+**Estructura de carpetas (`frontend/src/app/`):**
 
 ```
-src/
-├── api/          ← un archivo por recurso (turnos.js, pacientes.js, ...). Todos usan cliente.js
-│   └── cliente.js  ← ÚNICO lugar que arma los pedidos HTTP y agrega el token
-├── components/   ← piezas compartidas; Layout.jsx con encabezado y menú por rol
-├── pages/
-│   ├── auth/       ← login, registro, recuperar contraseña
-│   ├── turnos/     ← reservar, mis turnos (paciente)
-│   ├── agenda/     ← disponibilidad, bloqueos, horarios (admin)
-│   ├── historial/  ← consulta → diagnóstico → tratamiento (admin)
-│   └── pacientes/  ← pacientes y coberturas (admin)
-├── App.jsx       ← rutas (cada pantalla agrega solo su línea)
-└── main.jsx
+app/
+├── core/
+│   ├── guards/        ← auth.guard.ts: authGuard y rolGuard('PACIENTE' | 'ADMINISTRADOR')
+│   ├── interceptors/  ← jwt.interceptor.ts: ÚNICO lugar que agrega el token y maneja el 401
+│   ├── models/        ← interfaces de los DTOs del backend
+│   ├── services/      ← un servicio por recurso (auth.service.ts, turno.service.ts, ...)
+│   └── utils/         ← errores.ts: mensajeDeError() para mostrar el ErrorResponse
+├── features/
+│   ├── auth/          ← login, registro, recuperar contraseña
+│   ├── turnos/        ← reservar, mis turnos (paciente)
+│   ├── agenda/        ← disponibilidad, bloqueos, horarios (admin)
+│   ├── historial/     ← consulta → diagnóstico → tratamiento (admin)
+│   └── pacientes/     ← pacientes y coberturas (admin)
+├── app.ts / app.html  ← encabezado con menú por rol y Cerrar sesión
+└── app.routes.ts      ← rutas (cada pantalla reemplaza solo su línea de EnConstruccionComponent)
 ```
 
 **Reglas del frontend:**
-- Ningún componente llama a `fetch` directo: siempre a través de una función de `src/api/`, que usa `cliente.js`.
-- El token y el rol se guardan al hacer login y se borran al cerrar sesión. Si el backend responde 401, se vuelve a `/login`.
+- Ningún componente usa `HttpClient` directo: siempre a través de un servicio de `core/services/`.
+  El token lo agrega el interceptor; no se arman headers a mano.
+- El token y el rol se guardan al hacer login y se borran al cerrar sesión. Si el backend responde 401
+  a un pedido con token, se vuelve a `/login`.
 - Rutas `/paciente/...` solo para PACIENTE y `/admin/...` solo para ADMINISTRADOR.
 - Los errores del backend (`ErrorResponse`) se muestran en pantalla con un mensaje claro, no solo en la consola.
 - Estética NEXA Salud: tonos azules, tipografía limpia.
@@ -211,12 +220,12 @@ src/
 
 - ❌ Eliminar registros físicamente (`deleteById`). Todo es baja lógica; el Turno ni siquiera expone DELETE.
 - ❌ Escribir SQL de creación de tablas: las genera Hibernate desde las entidades.
-- ❌ Poner lógica de negocio en los controladores o en los componentes de React.
+- ❌ Poner lógica de negocio en los controladores o en los componentes de Angular.
 - ❌ Devolver la entidad `Usuario` o el campo `contrasena` en las respuestas.
 - ❌ Hardcodear credenciales o el secreto del JWT: van en `application.properties` (no commiteado) o en variables de entorno.
 - ❌ Commitear `target/`, `node_modules/`, `application.properties` ni archivos con contraseñas.
 - ❌ Usar `ddl-auto=create` con datos cargados (borra las tablas); siempre `update`.
-- ❌ Introducir librerías, patrones o arquitecturas no acordadas (MapStruct, Redux, TypeScript, Docker, microservicios).
+- ❌ Introducir librerías, patrones o arquitecturas no acordadas (MapStruct, NgRx, Angular Material, Docker, microservicios).
 - ❌ Trabajar directo sobre `main` o modificar código de otra integrante.
 
 ## 13. Pendientes técnicos
@@ -232,11 +241,13 @@ El reparto de tareas está en Jira (proyecto GDT). Acá solo lo que el código n
 - Opcionales: `PUT /turnos/{id}` (reprogramar, revalidando disponibilidad) y `PUT /usuarios/{id}`
   (actualizar datos, regla 12).
 
-**Frontend:** todavía no existe; se crea en `frontend/` con la estructura de la sección 10.
+**Frontend:** proyecto base en Angular listo (login, guard por rol, menú, interceptor JWT). Las
+pantallas que faltan usan `EnConstruccionComponent` en `app.routes.ts` hasta que cada integrante
+haga la suya.
 
 ---
 
 ### Referencia rápida
 - **Roles:** ADMINISTRADOR, PACIENTE (MEDICO reservado a futuro).
 - **Base API:** `/api/v1` · **Auth:** JWT · **Bajas:** lógicas (`activo=false`) · **Turno:** sin DELETE.
-- **Tablas:** las genera Hibernate · **Reglas:** en `service` · **Frontend:** `localhost:5173` · **Local:** sin despliegue.
+- **Tablas:** las genera Hibernate · **Reglas:** en `service` · **Frontend:** Angular en `localhost:4200` · **Local:** sin despliegue.

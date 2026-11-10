@@ -10,6 +10,7 @@ import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
 import com.turnosmedicos.backend.repository.CoberturaRepository;
 import com.turnosmedicos.backend.repository.FinanciadorRepository;
 import com.turnosmedicos.backend.repository.PacienteRepository;
+import com.turnosmedicos.backend.security.UsuarioActual;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,34 +21,44 @@ public class CoberturaService {
     private final CoberturaRepository coberturaRepository;
     private final PacienteRepository pacienteRepository;
     private final FinanciadorRepository financiadorRepository;
+    private final UsuarioActual usuarioActual;
 
     public CoberturaService(CoberturaRepository coberturaRepository,
                             PacienteRepository pacienteRepository,
-                            FinanciadorRepository financiadorRepository) {
+                            FinanciadorRepository financiadorRepository,
+                            UsuarioActual usuarioActual) {
         this.coberturaRepository = coberturaRepository;
         this.pacienteRepository = pacienteRepository;
         this.financiadorRepository = financiadorRepository;
+        this.usuarioActual = usuarioActual;
     }
 
+    // Todas las coberturas del sistema: solo ADMINISTRADOR.
+    // El PACIENTE usa GET /coberturas?idPaciente={su id}.
     public List<CoberturaResponseDTO> listarActivos() {
+        usuarioActual.verificarAdministrador(
+                "Solo el administrador puede listar todas las coberturas; indicá idPaciente");
         return coberturaRepository.findByActivoTrue().stream()
                 .map(this::toResponseDTO)
                 .toList();
     }
 
     public List<CoberturaResponseDTO> listarPorPaciente(Integer idPaciente) {
-        buscarPaciente(idPaciente);
+        usuarioActual.verificarPaciente(buscarPaciente(idPaciente));
         return coberturaRepository.findByPacienteIdAndActivoTrue(idPaciente).stream()
                 .map(this::toResponseDTO)
                 .toList();
     }
 
     public CoberturaResponseDTO obtenerPorId(Integer id) {
-        return toResponseDTO(buscarPorId(id));
+        Cobertura cobertura = buscarPorId(id);
+        usuarioActual.verificarPaciente(cobertura.getPaciente());
+        return toResponseDTO(cobertura);
     }
 
     public CoberturaResponseDTO crear(CoberturaRequestDTO request) {
         Paciente paciente = buscarPaciente(request.idPaciente());
+        usuarioActual.verificarPaciente(paciente);
         if (!paciente.getActivo()) {
             throw new ConflictoException("El paciente " + request.idPaciente() + " está dado de baja");
         }
@@ -71,6 +82,7 @@ public class CoberturaService {
 
     public CoberturaResponseDTO actualizar(Integer id, CoberturaRequestDTO request) {
         Cobertura cobertura = buscarPorId(id);
+        usuarioActual.verificarPaciente(cobertura.getPaciente());
 
         if (!cobertura.getPaciente().getId().equals(request.idPaciente())) {
             throw new ConflictoException("No se puede cambiar el paciente de una cobertura");
@@ -89,6 +101,7 @@ public class CoberturaService {
 
     public void eliminar(Integer id) {
         Cobertura cobertura = buscarPorId(id);
+        usuarioActual.verificarPaciente(cobertura.getPaciente());
         cobertura.setActivo(false);
         coberturaRepository.save(cobertura);
     }

@@ -9,6 +9,7 @@ import com.turnosmedicos.backend.entity.Paciente;
 import com.turnosmedicos.backend.entity.Turno;
 import com.turnosmedicos.backend.exception.ConflictoException;
 import com.turnosmedicos.backend.exception.RecursoNoEncontradoException;
+import com.turnosmedicos.backend.repository.BloqueoRepository;
 import com.turnosmedicos.backend.repository.CoberturaRepository;
 import com.turnosmedicos.backend.repository.DisponibilidadRepository;
 import com.turnosmedicos.backend.repository.MedicoRepository;
@@ -18,7 +19,7 @@ import com.turnosmedicos.backend.dto.TurnoCancelacionRequestDTO;
 import com.turnosmedicos.backend.enums.DiaSemana;
 import com.turnosmedicos.backend.enums.EstadoTurno;
 import com.turnosmedicos.backend.exception.DatosInvalidosException;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.turnosmedicos.backend.security.UsuarioActual;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -32,18 +33,24 @@ public class TurnoService {
     private final MedicoRepository medicoRepository;
     private final DisponibilidadRepository disponibilidadRepository;
     private final CoberturaRepository coberturaRepository;
+    private final BloqueoRepository bloqueoRepository;
+    private final UsuarioActual usuarioActual;
 
     public TurnoService(
             TurnoRepository turnoRepository,
             PacienteRepository pacienteRepository,
             MedicoRepository medicoRepository,
             DisponibilidadRepository disponibilidadRepository,
-            CoberturaRepository coberturaRepository) {
+            CoberturaRepository coberturaRepository,
+            BloqueoRepository bloqueoRepository,
+            UsuarioActual usuarioActual) {
             this.turnoRepository = turnoRepository;
             this.pacienteRepository = pacienteRepository;
             this.medicoRepository = medicoRepository;
             this.disponibilidadRepository = disponibilidadRepository;
             this.coberturaRepository = coberturaRepository;
+            this.bloqueoRepository = bloqueoRepository;
+            this.usuarioActual = usuarioActual;
     }
 
     public List<TurnoResponseDTO> listar() {
@@ -55,13 +62,14 @@ public class TurnoService {
     public TurnoResponseDTO obtenerPorId(Integer id) {
         Turno turno = turnoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe turno con el id: " + id));
+        usuarioActual.verificarPaciente(turno.getPaciente());
         return toResponseDTO(turno);
     }
 
     // El token solo trae el dni, no el id de paciente: lo resuelve a partir
     // del dni del usuario autenticado (igual que PacienteService.obtenerPropio).
     public List<TurnoResponseDTO> misTurnos() {
-        String dni = SecurityContextHolder.getContext().getAuthentication().getName();
+        String dni = usuarioActual.dni();
         Paciente paciente = pacienteRepository.findByDni(dni)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe un paciente asociado al dni " + dni));
 
@@ -72,12 +80,16 @@ public class TurnoService {
     public TurnoResponseDTO cancelar(Integer id, TurnoCancelacionRequestDTO request) {
         Turno turno = turnoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe turno con el id: " + id));
+        usuarioActual.verificarPaciente(turno.getPaciente());
 
         if (turno.getEstado() != EstadoTurno.CONFIRMADO) {
             throw new ConflictoException("Solo se puede cancelar un turno en estado CONFIRMADO");
         }
 
-        if (request.canceladoPorMedico() && (request.motivoCancelacion() == null || request.motivoCancelacion().isBlank())) {
+        // Quién cancela sale del rol del token, no del body: el ADMINISTRADOR
+        // (médico o su secretaria) cancela del lado del médico -> regla 6.
+        boolean canceladoPorMedico = usuarioActual.esAdministrador();
+        if (canceladoPorMedico && (request.motivoCancelacion() == null || request.motivoCancelacion().isBlank())) {
             throw new DatosInvalidosException("El motivo de cancelación es obligatorio cuando cancela el médico");
         }
 
@@ -96,6 +108,7 @@ public class TurnoService {
     public TurnoResponseDTO crear(TurnoRequestDTO request) {
         Paciente paciente = pacienteRepository.findById(request.idPaciente())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe paciente con el id: " + request.idPaciente()));
+        usuarioActual.verificarPaciente(paciente);
         if (!paciente.getActivo()) {
             throw new ConflictoException("El paciente " + request.idPaciente() + " está dado de baja");
         }
@@ -131,10 +144,22 @@ public class TurnoService {
             throw new ConflictoException("El horario no coincide con turnos de " + disponibilidad.getDuracionTurnoMin() + " minutos");
         }
 
+        // Regla 4: no se asigna un turno dentro de un bloqueo activo del médico
+        if (bloqueoRepository.existsByMedicoIdAndActivoTrueAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(
+                medico.getId(), request.fecha(), request.fecha())) {
+            throw new ConflictoException("El médico no atiende en esa fecha (bloqueo)");
+        }
+
         Cobertura cobertura = null;
         if (request.idCobertura() != null) {
             cobertura = coberturaRepository.findById(request.idCobertura())
                     .orElseThrow(() -> new RecursoNoEncontradoException("No existe cobertura: " + request.idCobertura()));
+            if (!cobertura.getPaciente().getId().equals(paciente.getId())) {
+                throw new ConflictoException("La cobertura indicada no pertenece al paciente");
+            }
+            if (!cobertura.getActivo()) {
+                throw new ConflictoException("La cobertura indicada está dada de baja");
+            }
         }
 
         if (turnoRepository.existsByMedicoIdAndFechaAndHoraAndEstadoNot(

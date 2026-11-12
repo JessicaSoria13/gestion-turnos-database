@@ -32,24 +32,28 @@ El sistema corre **solo en local** (sin despliegue).
 - PostgreSQL, base `turnos_medicos`. **Las tablas las genera Hibernate** a partir de las entidades
   (`spring.jpa.hibernate.ddl-auto=update`). **No** escribir DDL de creación de tablas a mano.
 
-**Frontend**
+**Frontend** (repositorio aparte: https://github.com/JessicaSoria13/gestion-turnos-frontend)
 - **Angular 22** (TypeScript, componentes standalone), por indicación del profe. Se basa en su
   proyecto base: https://github.com/fborzi/angular.
-- Corre en `http://localhost:4200` con `npm start`. El proxy de desarrollo (`frontend/proxy.conf.mjs`)
-  redirige `/api` al backend en el 8081 y quita el header `Origin`, así que no hace falta CORS para el 4200.
+- Corre en `http://localhost:4200` con `npm start`. El proxy de desarrollo (`proxy.conf.mjs`) redirige
+  `/api` al backend (8080 por defecto, o el puerto de la variable `BACKEND_PORT`) y quita el header
+  `Origin`, así que no hace falta CORS para el 4200.
 - Consume la API REST y envía el JWT en el header `Authorization: Bearer <token>`.
 - No agregar librerías sin acordarlo con el equipo.
 
 **Herramientas**: IntelliJ IDEA, VS Code, pgAdmin, Postman, Git/GitHub, Jira (proyecto GDT).
 
-## 3. Estructura del repositorio (monorepo)
+## 3. Estructura de los repositorios
 
-Repositorio: `gestion-turnos-database` (https://github.com/JessicaSoria13/gestion-turnos-database).
+El proyecto está en **dos repositorios**:
+- `gestion-turnos-database` (https://github.com/JessicaSoria13/gestion-turnos-database): backend,
+  base de datos, documentación y este archivo.
+- `gestion-turnos-frontend` (https://github.com/JessicaSoria13/gestion-turnos-frontend): el frontend
+  en Angular (estructura en la sección 10). Se separó en noviembre de 2026 conservando su historial.
 
 ```
 gestion-turnos-database/
 ├── backend/     ← proyecto Spring Boot (paquete base com.turnosmedicos.backend)
-├── frontend/    ← proyecto Angular 22 (basado en el proyecto base del profe)
 ├── db/          ← crear-base.sql + datos-prueba.sql + migracion-2026-09.sql + schema.sql (informativo)
 ├── docs/        ← endpoints.md + colección de Postman (docs/Turnos Médicos/)
 ├── contexto.md  ← este archivo
@@ -182,9 +186,10 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 
 ## 10. Frontend (Angular)
 
-Estructura del proyecto base del profe (`core/` + `features/`). Detalle y comandos en `frontend/README.md`.
+Repositorio `gestion-turnos-frontend`. Estructura del proyecto base del profe (`core/` + `features/`).
+Detalle y comandos en el README de ese repositorio.
 
-**Estructura de carpetas (`frontend/src/app/`):**
+**Estructura de carpetas (`src/app/`):**
 
 ```
 app/
@@ -216,6 +221,8 @@ app/
 ## 11. Forma de trabajo del equipo
 
 - **Una rama por tarea**, creada desde `main`, con la clave de Jira: `feature/GDT-98-descripcion-corta`.
+  Si la tarea toca back y front, se crea una rama con la misma clave en cada repositorio y se abre un PR
+  en cada uno (cada PR menciona al otro).
 - Commits chicos con la clave de Jira al principio: `GDT-98 Agrega finder de coberturas por paciente`.
 - Todo entra a `main` por **Pull Request** revisado por la directora del proyecto.
 - **Nadie modifica el código de otra integrante:** los cambios se piden como comentario en el PR y los hace la autora.
@@ -247,7 +254,7 @@ El reparto de tareas está en Jira (proyecto GDT). Acá solo lo que el código n
 - Opcionales: `PUT /turnos/{id}` (reprogramar, revalidando disponibilidad) y `PUT /usuarios/{id}`
   (actualizar datos, regla 12).
 
-**Frontend:** proyecto base en Angular listo (login, guard por rol, menú, interceptor JWT). Las
+**Frontend** (repo `gestion-turnos-frontend`): proyecto base en Angular listo (login, guard por rol, menú, interceptor JWT). Las
 pantallas que faltan usan `EnConstruccionComponent` en `app.routes.ts` hasta que cada integrante
 haga la suya.
 
@@ -256,4 +263,4 @@ haga la suya.
 ### Referencia rápida
 - **Roles:** ADMINISTRADOR, PACIENTE (MEDICO reservado a futuro).
 - **Base API:** `/api/v1` · **Auth:** JWT · **Bajas:** lógicas (`activo=false`) · **Turno:** sin DELETE.
-- **Tablas:** las genera Hibernate · **Reglas:** en `service` · **Frontend:** Angular en `localhost:4200` · **Local:** sin despliegue.
+- **Tablas:** las genera Hibernate · **Reglas:** en `service` · **Frontend:** Angular en `localhost:4200` (repo `gestion-turnos-frontend`) · **Local:** sin despliegue.

@@ -8,14 +8,18 @@ administrativos (pacientes, coberturas y financiadores).
 
 **Tecnologías:** Java 21, Spring Boot 3, Spring Data JPA, Spring Security con JWT, PostgreSQL y Maven.
 
+**Frontend:** está en otro repositorio, en Angular 22:
+https://github.com/JessicaSoria13/gestion-turnos-frontend (cómo levantarlo, en su README).
+
 ---
 
 ## Estructura del repositorio
 
 ```
-backend/   proyecto Spring Boot (las tablas se generan a partir de las clases de entity/)
-db/        scripts SQL: creación de la base, datos de prueba y migración
-docs/      colección de Postman con todos los endpoints y documentación
+backend/     proyecto Spring Boot (las tablas se generan a partir de las clases de entity/)
+db/          scripts SQL: creación de la base, datos de prueba y migración
+docs/        colección de Postman con todos los endpoints y documentación
+contexto.md  reglas del proyecto (arquitectura, seguridad, reglas de negocio, forma de trabajo)
 ```
 
 ---

@@ -2,10 +2,10 @@
 backend/target/
 *.class
 
-# Frontend (Node / Vite)
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
+# Copia local que genera la app de Postman (puede guardar tokens).
+# La colección oficial del proyecto está en docs/Turnos Médicos/.
+.postman/
+postman/
 
 # Configuración con credenciales reales
 backend/src/main/resources/application.properties

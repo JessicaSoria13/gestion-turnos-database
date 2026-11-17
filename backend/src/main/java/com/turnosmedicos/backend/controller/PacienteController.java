@@ -1,5 +1,6 @@
 package com.turnosmedicos.backend.controller;
-
+import com.turnosmedicos.backend.dto.CoberturaResponseDTO;
+import com.turnosmedicos.backend.service.CoberturaService;
 import com.turnosmedicos.backend.dto.PacienteRequestDTO;
 import com.turnosmedicos.backend.dto.PacienteResponseDTO;
 import com.turnosmedicos.backend.service.PacienteService;
@@ -23,9 +24,11 @@ import java.util.List;
 public class PacienteController {
 
     private final PacienteService pacienteService;
+    private final CoberturaService coberturaService;
 
-    public PacienteController(PacienteService pacienteService) {
+    public PacienteController(PacienteService pacienteService, CoberturaService coberturaService) {
         this.pacienteService = pacienteService;
+        this.coberturaService = coberturaService;
     }
 
     @GetMapping
@@ -43,6 +46,11 @@ public class PacienteController {
     @GetMapping("/{id}")
     public PacienteResponseDTO obtener(@PathVariable Integer id) {
         return pacienteService.obtenerPorId(id);
+    }
+
+    @GetMapping("/{id}/coberturas")
+    public List<CoberturaResponseDTO> listarCoberturas(@PathVariable Integer id) {
+        return coberturaService.listarPorPaciente(id);
     }
 
     @PostMapping

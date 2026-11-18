@@ -87,15 +87,35 @@ se crea como
 | 404 | No existe el diagnóstico o tratamiento indicado. |
 
 ---
-Pacientes
-GET /api/v1/pacientes/{id}/turnos
+## Pacientes
+
+### `GET /api/v1/pacientes/{id}/coberturas`
+
+Devuelve las coberturas activas del paciente (obra social o prepaga, número de afiliado y plan).
+El ADMINISTRADOR puede ver las de cualquier paciente; un PACIENTE, solo las suyas.
+
+**Response `200 OK`**
+```json
+[
+  { "id": 1, "idPaciente": 1, "idFinanciador": 2, "numeroAfiliado": "123456789", "plan": "210", "activo": true }
+]
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |
+
+### `GET /api/v1/pacientes/{id}/turnos`
+
 Devuelve todos los turnos del paciente (confirmados, cancelados y atendidos), del más nuevo al más viejo.
 El ADMINISTRADOR puede ver los de cualquier paciente; un PACIENTE, solo los suyos.
 
-Response 200 OK: lista de turnos, con el mismo formato que GET /api/v1/turnos/{id}.
+**Response `200 OK`**: lista de turnos, con el mismo formato que `GET /api/v1/turnos/{id}`.
 
-Errores
-
-Código	Mensaje
-403	No podés acceder a datos de otro paciente.
-404	No existe el paciente con id {id}.
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |

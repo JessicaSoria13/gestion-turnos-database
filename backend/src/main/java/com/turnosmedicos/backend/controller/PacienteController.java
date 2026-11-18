@@ -1,5 +1,6 @@
 package com.turnosmedicos.backend.controller;
-
+import com.turnosmedicos.backend.dto.CoberturaResponseDTO;
+import com.turnosmedicos.backend.service.CoberturaService;
 import com.turnosmedicos.backend.dto.PacienteRequestDTO;
 import com.turnosmedicos.backend.dto.PacienteResponseDTO;
 import com.turnosmedicos.backend.dto.TurnoResponseDTO;
@@ -25,10 +26,13 @@ import java.util.List;
 public class PacienteController {
 
     private final PacienteService pacienteService;
+    private final CoberturaService coberturaService;
     private final TurnoService turnoService;
 
-    public PacienteController(PacienteService pacienteService, TurnoService turnoService) {
+    public PacienteController(PacienteService pacienteService, CoberturaService coberturaService,
+                              TurnoService turnoService) {
         this.pacienteService = pacienteService;
+        this.coberturaService = coberturaService;
         this.turnoService = turnoService;
     }
 
@@ -47,6 +51,11 @@ public class PacienteController {
     @GetMapping("/{id}")
     public PacienteResponseDTO obtener(@PathVariable Integer id) {
         return pacienteService.obtenerPorId(id);
+    }
+
+    @GetMapping("/{id}/coberturas")
+    public List<CoberturaResponseDTO> listarCoberturas(@PathVariable Integer id) {
+        return coberturaService.listarPorPaciente(id);
     }
 
     // GDT-99 (Claudia): historial de turnos del paciente, del más nuevo al más viejo.

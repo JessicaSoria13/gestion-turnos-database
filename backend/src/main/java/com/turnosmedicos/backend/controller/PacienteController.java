@@ -3,7 +3,9 @@ import com.turnosmedicos.backend.dto.CoberturaResponseDTO;
 import com.turnosmedicos.backend.service.CoberturaService;
 import com.turnosmedicos.backend.dto.PacienteRequestDTO;
 import com.turnosmedicos.backend.dto.PacienteResponseDTO;
+import com.turnosmedicos.backend.dto.TurnoResponseDTO;
 import com.turnosmedicos.backend.service.PacienteService;
+import com.turnosmedicos.backend.service.TurnoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +27,13 @@ public class PacienteController {
 
     private final PacienteService pacienteService;
     private final CoberturaService coberturaService;
+    private final TurnoService turnoService;
 
-    public PacienteController(PacienteService pacienteService, CoberturaService coberturaService) {
+    public PacienteController(PacienteService pacienteService, CoberturaService coberturaService,
+                              TurnoService turnoService) {
         this.pacienteService = pacienteService;
         this.coberturaService = coberturaService;
+        this.turnoService = turnoService;
     }
 
     @GetMapping
@@ -51,6 +56,12 @@ public class PacienteController {
     @GetMapping("/{id}/coberturas")
     public List<CoberturaResponseDTO> listarCoberturas(@PathVariable Integer id) {
         return coberturaService.listarPorPaciente(id);
+    }
+
+    // GDT-99 (Claudia): historial de turnos del paciente, del más nuevo al más viejo.
+    @GetMapping("/{id}/turnos")
+    public List<TurnoResponseDTO> listarTurnos(@PathVariable Integer id) {
+        return turnoService.listarPorPaciente(id);
     }
 
     @PostMapping

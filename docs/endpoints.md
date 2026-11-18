@@ -106,3 +106,16 @@ El ADMINISTRADOR puede ver las de cualquier paciente; un PACIENTE, solo las suya
 |---|---|
 | 403 | No podés acceder a datos de otro paciente. |
 | 404 | No existe el paciente con id {id}. |
+
+### `GET /api/v1/pacientes/{id}/turnos`
+
+Devuelve todos los turnos del paciente (confirmados, cancelados y atendidos), del más nuevo al más viejo.
+El ADMINISTRADOR puede ver los de cualquier paciente; un PACIENTE, solo los suyos.
+
+**Response `200 OK`**: lista de turnos, con el mismo formato que `GET /api/v1/turnos/{id}`.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |

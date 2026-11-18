@@ -66,6 +66,18 @@ public class TurnoService {
         return toResponseDTO(turno);
     }
 
+  // Historial de turnos de un paciente, del más nuevo al más viejo (GDT-99).
+    // El ADMINISTRADOR ve el de cualquier paciente; un PACIENTE, solo el suyo.
+    public List<TurnoResponseDTO> listarPorPaciente(Integer idPaciente) {
+        Paciente paciente = pacienteRepository.findById(idPaciente)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el paciente con id " + idPaciente));
+        usuarioActual.verificarPaciente(paciente);
+
+        return turnoRepository.findByPacienteIdOrderByFechaDescHoraDesc(idPaciente).stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+    
     // El token solo trae el dni, no el id de paciente: lo resuelve a partir
     // del dni del usuario autenticado (igual que PacienteService.obtenerPropio).
     public List<TurnoResponseDTO> misTurnos() {

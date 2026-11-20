@@ -137,7 +137,10 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 
 - **Base URL:** `/api/v1`. Recursos en plural (`/pacientes`, `/turnos`, `/financiadores`, ...).
 - **`DELETE` = baja lógica** (`activo = false`). **Excepción: `Turno` NO expone `DELETE`**; se cancela con `PUT /turnos/{id}/cancelar`.
-- Códigos: 400 datos inválidos · 401 no autenticado · 403 sin permisos · 404 no existe o inactivo · 409 conflicto (horario ocupado, DNI o nombre duplicado) · 500 error interno.
+- Códigos: 400 datos inválidos · 401 no autenticado · 403 sin permisos · 404 no existe · 409 conflicto (horario ocupado, DNI o nombre duplicado) · 500 error interno.
+- **`GET /{id}` de un registro dado de baja:** devuelve 404 si el id no existe; si existe pero está
+  dado de baja, lo devuelve igual con `"activo": false` (los listados, en cambio, solo muestran los
+  activos). Excepción: `Diagnostico` y `Tratamiento` responden 404 también cuando están dados de baja.
 - Todo endpoint nuevo se documenta en `docs/endpoints.md` (descripción, request, response, tabla de errores) y se agrega a la colección de Postman.
 
 **Endpoints implementados (20/11/2026):**

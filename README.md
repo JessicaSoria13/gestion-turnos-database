@@ -163,8 +163,10 @@ creó todas las tablas en `turnos_medicos`. Dejá esa terminal abierta.
    `Authorization: Bearer <token>`.
 3. Por ejemplo, `GET http://localhost:8080/api/v1/financiadores` tiene que devolver **IOMA** y **OSDE**.
 
-En [docs/Turnos Médicos/](docs/Turnos%20M%C3%A9dicos/) está la colección de Postman con todos los
-endpoints organizados por recurso.
+En [docs/Turnos Médicos - NEXA Salud.postman_collection.json](docs/Turnos%20M%C3%A9dicos%20-%20NEXA%20Salud.postman_collection.json)
+está la colección de Postman con todos los endpoints organizados por recurso. Para usarla, en
+Postman: **Import** → elegí ese archivo. Los dos pedidos de login de la carpeta **Auth** guardan el
+token solos, así que después de ejecutar uno el resto de los pedidos ya lo envían.
 
 ---
 

@@ -55,7 +55,7 @@ El proyecto está en **dos repositorios**:
 gestion-turnos-database/
 ├── backend/     ← proyecto Spring Boot (paquete base com.turnosmedicos.backend)
 ├── db/          ← crear-base.sql + datos-prueba.sql + migracion-2026-09.sql + schema.sql (informativo)
-├── docs/        ← endpoints.md + colección de Postman (docs/Turnos Médicos/)
+├── docs/        ← endpoints.md + colección de Postman (Turnos Médicos - NEXA Salud.postman_collection.json)
 ├── contexto.md  ← este archivo
 ├── .gitignore   ← ignora target/, node_modules/ y archivos con credenciales
 └── README.md    ← cómo levantar el proyecto (puesta en marcha)

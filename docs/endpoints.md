@@ -278,6 +278,112 @@ automáticamente a `ATENDIDO`. Cada turno puede tener una sola consulta.
 
 ---
 
+## Usuarios
+
+Cuentas de acceso (DNI, contraseña y rol). Un mismo DNI puede tener dos usuarios, uno `PACIENTE` y
+otro `ADMINISTRADOR`. El ADMINISTRADOR gestiona todas las cuentas; un PACIENTE solo la suya. La
+contraseña nunca se devuelve: se guarda encriptada.
+
+### `GET /api/v1/usuarios`
+
+**Descripción**
+Solo ADMINISTRADOR. Lista los usuarios activos.
+
+**Response `200 OK`**
+```json
+[
+  { "id": 1, "dni": "30111222", "rol": "ADMINISTRADOR", "activo": true },
+  { "id": 2, "dni": "32111222", "rol": "PACIENTE", "activo": true }
+]
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+
+### `GET /api/v1/usuarios/{id}`
+
+**Descripción**
+Obtiene un usuario. El ADMINISTRADOR puede ver cualquiera; un PACIENTE, solo su propia cuenta.
+
+**Response `200 OK`**
+```json
+{ "id": 2, "dni": "32111222", "rol": "PACIENTE", "activo": true }
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a la cuenta de otro usuario. |
+| 404 | No existe el usuario con id {id}. |
+
+### `POST /api/v1/usuarios`
+
+**Descripción**
+Solo ADMINISTRADOR. Crea un usuario con el rol indicado (se usa para dar de alta otra cuenta
+administradora; los pacientes se registran solos con `POST /api/v1/auth/register`).
+
+**Request Body**
+```json
+{
+  "dni": "40111222",
+  "contrasena": "********",
+  "rol": "ADMINISTRADOR"
+}
+```
+
+**Response `201 Created`**
+```json
+{ "id": 9, "dni": "40111222", "rol": "ADMINISTRADOR", "activo": true }
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (DNI de hasta 10 caracteres, contraseña de 6 a 100, rol obligatorio). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 409 | Ya existe un usuario {rol} con el DNI '{dni}'. |
+
+### `PUT /api/v1/usuarios/{id}/contrasena`
+
+**Descripción**
+Cambia la contraseña de una cuenta, pidiendo la actual. Un PACIENTE solo puede cambiar la suya.
+
+**Request Body**
+```json
+{
+  "contrasenaActual": "********",
+  "contrasenaNueva": "********"
+}
+```
+
+**Response `200 OK`**: el usuario, con el mismo formato que `GET /api/v1/usuarios/{id}`.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (la contraseña nueva debe tener de 6 a 100 caracteres). |
+| 401 | La contraseña actual no es correcta. |
+| 403 | No podés acceder a la cuenta de otro usuario. |
+| 404 | No existe el usuario con id {id}. |
+
+### `DELETE /api/v1/usuarios/{id}`
+
+**Descripción**
+Baja lógica de la cuenta (`activo = false`): deja de aparecer en el listado y ya no puede iniciar
+sesión. Un PACIENTE solo puede dar de baja la suya.
+
+**Response `204 No Content`**
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a la cuenta de otro usuario. |
+| 404 | No existe el usuario con id {id}. |
+
+---
+
 ## Tratamientos
 
 ### `POST /api/v1/tratamientos`

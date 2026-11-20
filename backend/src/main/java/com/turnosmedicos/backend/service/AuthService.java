@@ -139,15 +139,15 @@ public class AuthService {
             emailService.enviarCorreoRecuperacion(request.email(), token);
         });
 
-        return new MensajeResponseDTO("Si el email esta registrado, te enviamos un correo con instrucciones.");
+        return new MensajeResponseDTO("Si el email está registrado, te enviamos un correo con instrucciones.");
     }
 
     public MensajeResponseDTO confirmarRecuperacion(ConfirmarRecuperacionRequestDTO request) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.token())
-                .orElseThrow(() -> new BadCredentialsException("El token no es valido"));
+                .orElseThrow(() -> new BadCredentialsException("El código no es válido"));
 
         if (resetToken.getUsado() || resetToken.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-            throw new BadCredentialsException("El token no es valido o ya expiro");
+            throw new BadCredentialsException("El código no es válido o ya venció");
         }
 
         Usuario usuario = resetToken.getUsuario();

@@ -26,7 +26,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        ErrorResponse error = ErrorResponse.of(401, "No autenticado", "Se requiere un token valido para acceder a este recurso");
+        ErrorResponse error = ErrorResponse.of(401, "No autenticado", "Se requiere un token válido para acceder a este recurso");
         response.getWriter().write(objectMapper.writeValueAsString(error));
     }
 }

@@ -5,7 +5,7 @@
 > negocio** definidas. Es la fuente de verdad del equipo: si una sugerencia contradice algo de acá,
 > gana este documento. Si el código cambia, se actualiza este archivo en el mismo Pull Request.
 >
-> Última actualización: 03/11/2026.
+> Última actualización: 20/11/2026.
 
 ---
 
@@ -97,9 +97,9 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 | **Disponibilidad** | medico, diaSemana (enum), horaInicio, horaFin, duracionTurnoMin, activo | Regla semanal recurrente. |
 | **Bloqueo** | medico, fechaDesde, fechaHasta, motivo, activo | Feriados, vacaciones, ausencias. |
 | **Turno** | paciente, medico, disponibilidad, cobertura (nullable), fecha, hora, estado (enum), motivoConsulta, motivoCancelacion | **Sin campo `activo`**: su ciclo de vida es el `estado`. |
-| **ConsultaMedica** | turno, observaciones | 1–1 con Turno. **Todavía sin `activo`** (ver sección 13). |
-| **Diagnostico** | consulta, descripcion | **Todavía sin `activo`** (ver sección 13). |
-| **Tratamiento** | diagnostico, descripcion, duracion, estado (enum) | **Todavía sin `activo`** (ver sección 13). |
+| **ConsultaMedica** | turno, observaciones | 1–1 con Turno. **Sin campo `activo`**: no tiene baja. |
+| **Diagnostico** | consulta, descripcion, activo | Una consulta puede tener varios. |
+| **Tratamiento** | diagnostico, descripcion, duracion, estado (enum), activo | Un diagnóstico puede tener varios. |
 | **Cobertura** | paciente, financiador, numeroAfiliado, plan, activo | Un paciente puede tener 0..N. |
 | **Financiador** | nombre, cuit, activo | Obra social o prepaga. |
 
@@ -140,20 +140,20 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 - Códigos: 400 datos inválidos · 401 no autenticado · 403 sin permisos · 404 no existe o inactivo · 409 conflicto (horario ocupado, DNI o nombre duplicado) · 500 error interno.
 - Todo endpoint nuevo se documenta en `docs/endpoints.md` (descripción, request, response, tabla de errores) y se agrega a la colección de Postman.
 
-**Endpoints implementados (03/11/2026):**
+**Endpoints implementados (20/11/2026):**
 
 | Recurso | Endpoints |
 |---|---|
 | Auth | `POST /auth/register` · `POST /auth/login` · `POST /auth/recuperar-contrasena/solicitar` · `POST /auth/recuperar-contrasena/confirmar` |
 | Usuarios | `GET /usuarios` · `GET /usuarios/{id}` · `POST /usuarios` · `PUT /usuarios/{id}/contrasena` · `DELETE /usuarios/{id}` |
-| Pacientes | `GET /pacientes` · `GET /pacientes/me` · `GET /pacientes/{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
+| Pacientes | `GET /pacientes` · `GET /pacientes/me` · `GET /pacientes/{id}` · `GET /pacientes/{id}/coberturas` · `GET /pacientes/{id}/turnos` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 | Médicos | `GET /medicos` · `GET /medicos/{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` · `GET /medicos/{id}/horarios-disponibles?fecha=YYYY-MM-DD` |
 | Disponibilidades | `GET` · `GET /{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 | Bloqueos | `GET` · `GET /{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 | Turnos | `GET /turnos` (admin) · `GET /turnos/mis-turnos` (paciente) · `GET /turnos/{id}` · `POST` · `PUT /turnos/{id}/cancelar` |
 | Consultas médicas | `GET` · `GET /{id}` · `POST` |
-| Diagnósticos | `GET` · `GET /{id}` · `GET /diagnosticos/consulta/{consultaId}` · `POST` · `PUT /{id}` |
-| Tratamientos | `GET` · `GET /{id}` · `POST` · `PUT /{id}` |
+| Diagnósticos | `GET` · `GET /{id}` · `GET /diagnosticos/consulta/{consultaId}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
+| Tratamientos | `GET` · `GET /{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 | Coberturas | `GET` · `GET /{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 | Financiadores | `GET` · `GET /{id}` · `POST` · `PUT /{id}` · `DELETE /{id}` |
 
@@ -206,7 +206,7 @@ app/
 │   ├── historial/     ← consulta → diagnóstico → tratamiento (admin)
 │   └── pacientes/     ← pacientes y coberturas (admin)
 ├── app.ts / app.html  ← encabezado con menú por rol y Cerrar sesión
-└── app.routes.ts      ← rutas (cada pantalla reemplaza solo su línea de EnConstruccionComponent)
+└── app.routes.ts      ← rutas de la aplicación
 ```
 
 **Reglas del frontend:**
@@ -241,22 +241,12 @@ app/
 - ❌ Introducir librerías, patrones o arquitecturas no acordadas (MapStruct, NgRx, Angular Material, Docker, microservicios).
 - ❌ Trabajar directo sobre `main` o modificar código de otra integrante.
 
-## 13. Pendientes técnicos
+## 13. Fuera de alcance
 
-El reparto de tareas está en Jira (proyecto GDT). Acá solo lo que el código necesita saber.
-
-**Endpoints que faltan respecto del análisis:**
-- `GET /pacientes/{id}/coberturas`: coberturas activas de un paciente.
-- `GET /pacientes/{id}/turnos`: historial de turnos de un paciente, del más nuevo al más viejo.
-- `DELETE /diagnosticos/{id}` y `DELETE /tratamientos/{id}`: baja lógica. **Requiere agregar
-  `private Boolean activo = true;` a `Diagnostico` y `Tratamiento`** (Hibernate crea la columna al
-  arrancar) y filtrar sus listados con `findByActivoTrue()`.
-- Opcionales: `PUT /turnos/{id}` (reprogramar, revalidando disponibilidad) y `PUT /usuarios/{id}`
-  (actualizar datos, regla 12).
-
-**Frontend** (repo `gestion-turnos-frontend`): proyecto base en Angular listo (login, guard por rol, menú, interceptor JWT). Las
-pantallas que faltan usan `EnConstruccionComponent` en `app.routes.ts` hasta que cada integrante
-haga la suya.
+Endpoints del análisis que no se implementan en esta versión:
+- `PUT /turnos/{id}`: reprogramar un turno (habría que revalidar disponibilidad, bloqueos y horario
+  ocupado).
+- `PUT /usuarios/{id}`: actualizar los datos del usuario (regla 12).
 
 ---
 

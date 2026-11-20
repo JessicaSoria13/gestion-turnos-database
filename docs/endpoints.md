@@ -351,3 +351,487 @@ El ADMINISTRADOR puede ver los de cualquier paciente; un PACIENTE, solo los suyo
 |---|---|
 | 403 | No podés acceder a datos de otro paciente. |
 | 404 | No existe el paciente con id {id}. |
+
+---
+
+## Disponibilidades
+
+**Criterio:** la disponibilidad es la franja semanal recurrente en la que atiende el médico (por
+ejemplo, los lunes de 09:00 a 17:00 con turnos de 30 minutos). A partir de ella se calculan los
+horarios disponibles. Cualquier usuario autenticado puede consultarlas; crearlas, modificarlas y
+darlas de baja es solo del ADMINISTRADOR.
+
+### `GET /api/v1/disponibilidades`
+
+**Descripción**
+Cualquier usuario autenticado. Lista las disponibilidades activas. Con `?idMedico=1` devuelve solo
+las del médico indicado.
+
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "idMedico": 1,
+    "diaSemana": "LUNES",
+    "horaInicio": "09:00:00",
+    "horaFin": "17:00:00",
+    "duracionTurnoMin": 30,
+    "activo": true
+  }
+]
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (`idMedico` no numérico). |
+| 404 | No existe el médico con id {id}. |
+
+### `GET /api/v1/disponibilidades/{id}`
+
+**Descripción**
+Cualquier usuario autenticado. Obtiene una disponibilidad. Si está dada de baja, la devuelve igual
+con `"activo": false`.
+
+**Response `200 OK`**: la disponibilidad, con el mismo formato que un elemento de
+`GET /api/v1/disponibilidades`.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 404 | No existe la disponibilidad con id {id}. |
+
+### `POST /api/v1/disponibilidades`
+
+**Descripción**
+Solo ADMINISTRADOR. Crea una franja semanal para un médico activo. La hora de inicio tiene que ser
+anterior a la de fin, la duración del turno tiene que entrar en la franja y no se puede solapar con
+otra disponibilidad activa del mismo médico ese día.
+
+**Request Body**
+```json
+{
+  "idMedico": 1,
+  "diaSemana": "LUNES",
+  "horaInicio": "09:00",
+  "horaFin": "17:00",
+  "duracionTurnoMin": 30
+}
+```
+
+`diaSemana`: `LUNES`, `MARTES`, `MIERCOLES`, `JUEVES`, `VIERNES`, `SABADO` o `DOMINGO`.
+
+**Response `201 Created`**
+```json
+{
+  "id": 3,
+  "idMedico": 1,
+  "diaSemana": "LUNES",
+  "horaInicio": "09:00:00",
+  "horaFin": "17:00:00",
+  "duracionTurnoMin": 30,
+  "activo": true
+}
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios o `duracionTurnoMin` no es positivo). |
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (`diaSemana` u hora con formato inválido). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el médico con id {id}. |
+| 409 | El médico {id} está dado de baja. |
+| 409 | La hora de inicio debe ser anterior a la hora de fin. |
+| 409 | La duración del turno no entra en la ventana horaria indicada. |
+| 409 | El médico ya tiene una disponibilidad que se solapa con ese horario. |
+
+### `PUT /api/v1/disponibilidades/{id}`
+
+**Descripción**
+Solo ADMINISTRADOR. Reemplaza médico, día, horario y duración de la disponibilidad. Aplica las
+mismas validaciones de horario y solapamiento que el alta (sin compararla consigo misma). No
+revisa si el médico está dado de baja.
+
+**Request Body**: igual que `POST /api/v1/disponibilidades`.
+
+**Response `200 OK`**: la disponibilidad actualizada, con el mismo formato que el alta.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios o `duracionTurnoMin` no es positivo). |
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (`diaSemana` u hora con formato inválido). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe la disponibilidad con id {id}. |
+| 404 | No existe el médico con id {id}. |
+| 409 | La hora de inicio debe ser anterior a la hora de fin. |
+| 409 | La duración del turno no entra en la ventana horaria indicada. |
+| 409 | El médico ya tiene una disponibilidad que se solapa con ese horario. |
+
+### `DELETE /api/v1/disponibilidades/{id}`
+
+**Descripción**
+Solo ADMINISTRADOR. Baja lógica (`activo = false`): la franja deja de aparecer en los listados.
+
+**Response `204 No Content`**: sin cuerpo.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe la disponibilidad con id {id}. |
+
+---
+
+## Bloqueos
+
+Solo ADMINISTRADOR (todos los endpoints). Un PACIENTE recibe `403 Sin permisos` (mensaje
+`Access Denied`).
+
+**Criterio:** el bloqueo es un rango de fechas en el que el médico no atiende (feriado, vacaciones,
+ausencia) y tiene prioridad sobre la disponibilidad. Al crearlo, cancela los turnos `CONFIRMADO`
+del médico dentro del rango con el motivo del bloqueo. Su baja vuelve a ofrecer esos horarios, pero
+**no restaura** los turnos cancelados.
+
+### `GET /api/v1/bloqueos`
+
+**Descripción**
+Lista los bloqueos activos. Con `?idMedico=1` devuelve solo los del médico indicado.
+
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "idMedico": 1,
+    "fechaDesde": "2026-12-24",
+    "fechaHasta": "2026-12-25",
+    "motivo": "Feriado de Navidad",
+    "activo": true
+  }
+]
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (`idMedico` no numérico). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el médico con id {id}. |
+
+### `GET /api/v1/bloqueos/{id}`
+
+**Descripción**
+Obtiene un bloqueo. Si está dado de baja, lo devuelve igual con `"activo": false`.
+
+**Response `200 OK`**: el bloqueo, con el mismo formato que un elemento de `GET /api/v1/bloqueos`.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el bloqueo con id {id}. |
+
+### `POST /api/v1/bloqueos`
+
+**Descripción**
+Crea un bloqueo para un médico activo. `fechaHasta` puede ser igual a `fechaDesde` (bloqueo de un
+solo día). Los turnos `CONFIRMADO` del médico entre esas fechas pasan a `CANCELADO` con
+`motivoCancelacion` igual al `motivo` del bloqueo.
+
+**Request Body**
+```json
+{
+  "idMedico": 1,
+  "fechaDesde": "2026-12-24",
+  "fechaHasta": "2026-12-25",
+  "motivo": "Feriado de Navidad"
+}
+```
+
+**Response `201 Created`**
+```json
+{
+  "id": 2,
+  "idMedico": 1,
+  "fechaDesde": "2026-12-24",
+  "fechaHasta": "2026-12-25",
+  "motivo": "Feriado de Navidad",
+  "activo": true
+}
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios o `motivo` vacío o de más de 100 caracteres). |
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (fecha con formato inválido). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el médico con id {id}. |
+| 409 | El médico {id} está dado de baja. |
+| 409 | La fecha de fin no puede ser anterior a la fecha de inicio. |
+
+### `PUT /api/v1/bloqueos/{id}`
+
+**Descripción**
+Reemplaza médico, fechas y motivo del bloqueo. A diferencia del alta, **no** cancela turnos del
+nuevo rango ni revisa si el médico está dado de baja.
+
+**Request Body**: igual que `POST /api/v1/bloqueos`.
+
+**Response `200 OK`**: el bloqueo actualizado, con el mismo formato que el alta.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios o `motivo` vacío o de más de 100 caracteres). |
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (fecha con formato inválido). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el bloqueo con id {id}. |
+| 404 | No existe el médico con id {id}. |
+| 409 | La fecha de fin no puede ser anterior a la fecha de inicio. |
+
+### `DELETE /api/v1/bloqueos/{id}`
+
+**Descripción**
+Baja lógica (`activo = false`). Los horarios del rango vuelven a estar disponibles; los turnos que
+el bloqueo canceló siguen `CANCELADO`.
+
+**Response `204 No Content`**: sin cuerpo.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el bloqueo con id {id}. |
+
+---
+
+## Coberturas
+
+**Criterio:** la cobertura vincula a un paciente con un financiador (obra social o prepaga). Un
+paciente puede tener cero, una o varias. Los endpoints no restringen por rol: los usan el
+ADMINISTRADOR (sobre cualquier paciente) y el PACIENTE (solo sobre las suyas). Si un PACIENTE
+intenta operar sobre una cobertura de otro paciente: `403 No podés acceder a datos de otro
+paciente`.
+
+### `GET /api/v1/coberturas`
+
+**Descripción**
+Sin parámetros: solo ADMINISTRADOR, lista todas las coberturas activas del sistema. Con
+`?idPaciente=1`: lista las coberturas activas de ese paciente (un PACIENTE, solo con su propio id).
+
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "idPaciente": 1,
+    "idFinanciador": 2,
+    "numeroAfiliado": "123456789",
+    "plan": "210",
+    "activo": true
+  }
+]
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (`idPaciente` no numérico). |
+| 403 | Solo el administrador puede listar todas las coberturas; indicá idPaciente. |
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |
+
+### `GET /api/v1/coberturas/{id}`
+
+**Descripción**
+ADMINISTRADOR o el PACIENTE dueño de la cobertura. Si está dada de baja, la devuelve igual con
+`"activo": false`.
+
+**Response `200 OK`**: la cobertura, con el mismo formato que un elemento de
+`GET /api/v1/coberturas`.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe la cobertura con id {id}. |
+
+### `POST /api/v1/coberturas`
+
+**Descripción**
+ADMINISTRADOR, o un PACIENTE para sí mismo. Crea una cobertura para un paciente activo con un
+financiador activo. `plan` es opcional. No puede repetirse la combinación paciente + financiador +
+número de afiliado (cuentan también las coberturas dadas de baja).
+
+**Request Body**
+```json
+{
+  "idPaciente": 1,
+  "idFinanciador": 2,
+  "numeroAfiliado": "123456789",
+  "plan": "210"
+}
+```
+
+**Response `201 Created`**
+```json
+{
+  "id": 4,
+  "idPaciente": 1,
+  "idFinanciador": 2,
+  "numeroAfiliado": "123456789",
+  "plan": "210",
+  "activo": true
+}
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios, `numeroAfiliado` vacío o de más de 30 caracteres, o `plan` de más de 50). |
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |
+| 404 | No existe el financiador con id {id}. |
+| 409 | El paciente {id} está dado de baja. |
+| 409 | El financiador {id} está dado de baja. |
+| 409 | El paciente ya tiene una cobertura con ese financiador y número de afiliado. |
+
+### `PUT /api/v1/coberturas/{id}`
+
+**Descripción**
+ADMINISTRADOR o el PACIENTE dueño de la cobertura. Actualiza financiador, número de afiliado y
+plan. `idPaciente` tiene que ser el mismo que ya tiene la cobertura: el paciente no se puede
+cambiar.
+
+**Request Body**: igual que `POST /api/v1/coberturas`.
+
+**Response `200 OK`**: la cobertura actualizada, con el mismo formato que el alta.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (faltan datos obligatorios, `numeroAfiliado` vacío o de más de 30 caracteres, o `plan` de más de 50). |
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe la cobertura con id {id}. |
+| 404 | No existe el financiador con id {id}. |
+| 409 | No se puede cambiar el paciente de una cobertura. |
+| 409 | El paciente ya tiene una cobertura con ese financiador y número de afiliado. |
+
+### `DELETE /api/v1/coberturas/{id}`
+
+**Descripción**
+ADMINISTRADOR o el PACIENTE dueño de la cobertura. Baja lógica (`activo = false`). Los turnos que
+ya la usaban la conservan.
+
+**Response `204 No Content`**: sin cuerpo.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe la cobertura con id {id}. |
+
+---
+
+## Financiadores
+
+**Criterio:** el financiador es la obra social o prepaga. Cualquier usuario autenticado puede
+consultarlos (el paciente los necesita para cargar su cobertura); crearlos, modificarlos y darlos
+de baja es solo del ADMINISTRADOR. El nombre no se puede repetir (sin distinguir mayúsculas y
+contando también los dados de baja).
+
+### `GET /api/v1/financiadores`
+
+**Descripción**
+Cualquier usuario autenticado. Lista los financiadores activos.
+
+**Response `200 OK`**
+```json
+[
+  { "id": 1, "nombre": "IOMA", "cuit": "30-99999999-9", "activo": true },
+  { "id": 2, "nombre": "OSDE", "cuit": "30-88888888-8", "activo": true }
+]
+```
+
+**Errores**: no tiene errores propios (solo `401` si falta el token).
+
+### `GET /api/v1/financiadores/{id}`
+
+**Descripción**
+Cualquier usuario autenticado. Obtiene un financiador. Si está dado de baja, lo devuelve igual con
+`"activo": false`.
+
+**Response `200 OK`**
+```json
+{ "id": 1, "nombre": "IOMA", "cuit": "30-99999999-9", "activo": true }
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 404 | No existe el financiador con id {id}. |
+
+### `POST /api/v1/financiadores`
+
+**Descripción**
+Solo ADMINISTRADOR. Crea un financiador. `cuit` es opcional.
+
+**Request Body**
+```json
+{
+  "nombre": "Swiss Medical",
+  "cuit": "30-77777777-7"
+}
+```
+
+**Response `201 Created`**
+```json
+{
+  "id": 3,
+  "nombre": "Swiss Medical",
+  "cuit": "30-77777777-7",
+  "activo": true
+}
+```
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (`nombre` vacío o de más de 100 caracteres, o `cuit` de más de 13). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 409 | Ya existe un financiador con el nombre '{nombre}'. |
+
+### `PUT /api/v1/financiadores/{id}`
+
+**Descripción**
+Solo ADMINISTRADOR. Actualiza nombre y CUIT.
+
+**Request Body**: igual que `POST /api/v1/financiadores`.
+
+**Response `200 OK`**: el financiador actualizado, con el mismo formato que el alta.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (`nombre` vacío o de más de 100 caracteres, o `cuit` de más de 13). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el financiador con id {id}. |
+| 409 | Ya existe un financiador con el nombre '{nombre}'. |
+
+### `DELETE /api/v1/financiadores/{id}`
+
+**Descripción**
+Solo ADMINISTRADOR. Baja lógica (`activo = false`). Las coberturas que ya lo usan no se modifican,
+pero no se pueden crear coberturas nuevas con un financiador dado de baja.
+
+**Response `204 No Content`**: sin cuerpo.
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el financiador con id {id}. |

@@ -1,4 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/turnos/mis-turnos"
-method: GET
-order: 1500

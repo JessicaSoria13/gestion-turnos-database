@@ -3,7 +3,7 @@ backend/target/
 *.class
 
 # Copia local que genera la app de Postman (puede guardar tokens).
-# La colección oficial del proyecto está en docs/Turnos Médicos/.
+# La colección oficial del proyecto está en docs/Turnos Médicos - NEXA Salud.postman_collection.json.
 .postman/
 postman/
 

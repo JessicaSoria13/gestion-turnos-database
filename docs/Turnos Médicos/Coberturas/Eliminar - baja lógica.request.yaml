@@ -1,4 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/coberturas/2"
-method: DELETE
-order: 6000

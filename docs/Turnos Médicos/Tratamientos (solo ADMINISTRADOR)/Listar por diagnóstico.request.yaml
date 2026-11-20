@@ -1,6 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/tratamientos?idDiagnostico=1"
-method: GET
-queryParams:
-  idDiagnostico: "1"
-order: 2000

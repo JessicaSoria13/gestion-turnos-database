@@ -53,25 +53,78 @@ cd gestion-turnos-database
 
 ### 4. Configurar la conexión del backend
 
-El archivo con las credenciales **no está en el repo**, se arma a partir de una plantilla:
+`application.properties` **no está en el repo** (está en el `.gitignore`). Se arma a partir de una
+plantilla que lee las credenciales de **variables de entorno**, así nadie escribe contraseñas en un
+archivo.
 
 1. En `backend/src/main/resources/` copiá `application.properties.example` y renombrá la copia a
-   `application.properties`.
-2. Abrilo y reemplazá estos valores:
+   `application.properties`. **No le cambies nada**: los valores salen de las variables de entorno.
+2. Definí estas cinco variables de entorno. Las cinco son obligatorias: si falta alguna, el backend
+   no arranca.
 
-```properties
-spring.datasource.username=postgres
-spring.datasource.password=TU_PASSWORD_DE_POSTGRES
-jwt.secret=un-texto-largo-inventado-de-al-menos-32-caracteres
-spring.mail.username=sin-configurar
-spring.mail.password=sin-configurar
+| Variable | Qué va |
+|---|---|
+| `DB_USERNAME` | Usuario de PostgreSQL: `postgres`. |
+| `DB_PASSWORD` | La contraseña de `postgres` que elegiste al instalar PostgreSQL (paso 1). |
+| `JWT_SECRET` | Un texto inventado de **32 caracteres o más**. Es la clave con la que se firman los tokens. |
+| `MAIL_USERNAME` | La dirección completa del Gmail que envía los correos (ver [El email](#el-email-recuperación-de-contraseña)). |
+| `MAIL_PASSWORD` | La contraseña de aplicación de ese Gmail: 16 letras, sin espacios. |
+
+El resto (puerto `8080`, base `turnos_medicos` en `localhost:5432`, servidor `smtp.gmail.com`) ya
+viene con valores por defecto en la plantilla y no hace falta definirlo.
+
+#### En Windows
+
+En una terminal de PowerShell:
+
+```powershell
+setx DB_USERNAME "postgres"
+setx DB_PASSWORD "TU_PASSWORD_DE_POSTGRES"
+setx JWT_SECRET "un-texto-largo-inventado-de-al-menos-32-caracteres"
+setx MAIL_USERNAME "tu.cuenta@gmail.com"
+setx MAIL_PASSWORD "abcdefghijklmnop"
 ```
 
-- `jwt.secret` tiene que tener **32 caracteres o más** (es la clave con la que se firman los tokens).
-- Las dos líneas de `spring.mail` **tienen que tener algún valor** o el backend no arranca. Un
-  email real (Gmail con contraseña de aplicación) solo hace falta para probar la recuperación de
-  contraseña.
-- El resto ya viene con valores que funcionan (puerto 8080, base `turnos_medicos`).
+`setx` las guarda para siempre en tu usuario de Windows, pero **solo las ven los programas que
+abras después**: cerrá la terminal (y IntelliJ, si estaba abierto) y abrí una nueva. Para
+comprobarlo: `echo $env:DB_USERNAME` tiene que mostrar `postgres`. Para corregir un valor, volvé a
+correr el `setx` de esa variable.
+
+#### En IntelliJ IDEA
+
+Si las definiste con `setx` y reiniciaste IntelliJ, no hace falta nada más. Si preferís cargarlas
+solo en IntelliJ:
+
+1. **Run → Edit Configurations…** → elegí `BackendApplication`.
+2. Si no ves el campo **Environment variables**, activalo desde **Modify options → Environment
+   variables**.
+3. Pegá las cinco separadas por punto y coma:
+
+   ```
+   DB_USERNAME=postgres;DB_PASSWORD=TU_PASSWORD_DE_POSTGRES;JWT_SECRET=un-texto-largo-inventado-de-al-menos-32-caracteres;MAIL_USERNAME=tu.cuenta@gmail.com;MAIL_PASSWORD=abcdefghijklmnop
+   ```
+
+Así cargadas, solo valen cuando el backend se ejecuta desde IntelliJ (no desde `mvnw.cmd` en una
+terminal).
+
+#### El email (recuperación de contraseña)
+
+`POST /api/v1/auth/recuperar-contrasena/solicitar` le manda al paciente un código por email desde
+el Gmail de `MAIL_USERNAME`. Para que funcione:
+
+1. La cuenta de Gmail tiene que tener activada la **verificación en 2 pasos** (sin eso, Google no
+   deja crear contraseñas de aplicación).
+2. Creá una **contraseña de aplicación** en https://myaccount.google.com/apppasswords. No es la
+   contraseña normal de la cuenta. Google la muestra en cuatro grupos (`abcd efgh ijkl mnop`): en
+   `MAIL_PASSWORD` van las **16 letras juntas, sin espacios**.
+3. En `MAIL_USERNAME` va la dirección completa de esa cuenta (`tu.cuenta@gmail.com`).
+
+El servidor de correo sale de la variable `MAIL_HOST`, que por defecto es `smtp.gmail.com`. **Si
+`MAIL_HOST` apunta a otro servidor (por ejemplo, Mailtrap), el email no llega a Gmail**: queda en
+la bandeja de ese servicio. Para recibirlo en la casilla real, no definas `MAIL_HOST`.
+
+Si el usuario o la contraseña del Gmail están mal, el backend arranca igual, pero al pedir la
+recuperación responde `500`.
 
 ### 5. Levantar el backend (crea las tablas)
 
@@ -110,8 +163,10 @@ creó todas las tablas en `turnos_medicos`. Dejá esa terminal abierta.
    `Authorization: Bearer <token>`.
 3. Por ejemplo, `GET http://localhost:8080/api/v1/financiadores` tiene que devolver **IOMA** y **OSDE**.
 
-En [docs/Turnos Médicos/](docs/Turnos%20M%C3%A9dicos/) está la colección de Postman con todos los
-endpoints organizados por recurso.
+En [docs/Turnos Médicos - NEXA Salud.postman_collection.json](docs/Turnos%20M%C3%A9dicos%20-%20NEXA%20Salud.postman_collection.json)
+está la colección de Postman con todos los endpoints organizados por recurso. Para usarla, en
+Postman: **Import** → elegí ese archivo. Los dos pedidos de login de la carpeta **Auth** guardan el
+token solos, así que después de ejecutar uno el resto de los pedidos ya lo envían.
 
 ---
 

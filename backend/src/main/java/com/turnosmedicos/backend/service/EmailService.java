@@ -21,9 +21,9 @@ public class EmailService {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setFrom(remitente);
         mensaje.setTo(destinatario);
-        mensaje.setSubject("Recuperacion de contrasena - Turnos Medicos");
-        mensaje.setText("Usa este codigo para restablecer tu contrasena: " + token
-                + "\n\nEste codigo vence en 30 minutos. Si no pediste este cambio, ignora este mensaje.");
+        mensaje.setSubject("Recuperación de contraseña - NEXA Salud");
+        mensaje.setText("Usá este código para restablecer tu contraseña: " + token
+                + "\n\nEste código vence en 30 minutos. Si no pediste este cambio, ignorá este mensaje.");
         mailSender.send(mensaje);
     }
 }

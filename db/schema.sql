@@ -71,9 +71,8 @@ CREATE TABLE paciente (
 -- ------------------------------------------------------------
 -- 3. MEDICO
 -- id_usuario NOT NULL: el médico debe poder autenticarse.
--- NOTA: en la entidad JPA (backend), un médico puede tener
--- varias especialidades: se modela como colección aparte
--- (tabla medico_especialidad), no como esta columna única.
+-- Las especialidades no son una columna: un médico puede tener
+-- varias y se guardan en medico_especialidad (3.1).
 -- ------------------------------------------------------------
 CREATE TABLE medico (
     id_medico        INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -81,8 +80,18 @@ CREATE TABLE medico (
     nombre_apellido  VARCHAR(100) NOT NULL,
     dni              VARCHAR(10)  NOT NULL UNIQUE,
     matricula        VARCHAR(20)  NOT NULL UNIQUE,
-    especialidad     VARCHAR(100) NOT NULL,
     activo           BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+-- ------------------------------------------------------------
+-- 3.1 MEDICO_ESPECIALIDAD
+-- Especialidades de cada médico (0..N). No es una entidad: es
+-- la colección "especialidades" de Medico (@ElementCollection),
+-- por eso no tiene id propio.
+-- ------------------------------------------------------------
+CREATE TABLE medico_especialidad (
+    id_medico     INTEGER      NOT NULL REFERENCES medico (id_medico),
+    especialidad  VARCHAR(100) NOT NULL
 );
 
 -- ------------------------------------------------------------
@@ -193,7 +202,8 @@ CREATE TABLE consulta_medica (
 CREATE TABLE diagnostico (
     id_diagnostico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_consulta    INTEGER NOT NULL REFERENCES consulta_medica (id_consulta),
-    descripcion    TEXT    NOT NULL
+    descripcion    TEXT    NOT NULL,
+    activo         BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ------------------------------------------------------------
@@ -205,7 +215,21 @@ CREATE TABLE tratamiento (
     id_diagnostico INTEGER NOT NULL REFERENCES diagnostico (id_diagnostico),
     descripcion    TEXT    NOT NULL,
     duracion       VARCHAR(50),
-    estado         estado_tratamiento NOT NULL DEFAULT 'EN_CURSO'
+    estado         estado_tratamiento NOT NULL DEFAULT 'EN_CURSO',
+    activo         BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ------------------------------------------------------------
+-- 12. PASSWORD_RESET_TOKEN (soporte)
+-- Códigos de recuperación de contraseña. Vencen a los 30
+-- minutos (fecha_expiracion) y se usan una sola vez (usado).
+-- ------------------------------------------------------------
+CREATE TABLE password_reset_token (
+    id_token          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario        INTEGER      NOT NULL REFERENCES usuario (id_usuario),
+    token             VARCHAR(100) NOT NULL UNIQUE,
+    fecha_expiracion  TIMESTAMP    NOT NULL,
+    usado             BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
 -- ------------------------------------------------------------
@@ -228,8 +252,11 @@ INSERT INTO usuario (dni, contrasena, rol) VALUES
 ('30111222', '$2a$10$hashDeEjemplo1', 'ADMINISTRADOR'),
 ('32111222', '$2a$10$hashDeEjemplo2', 'PACIENTE');
 
-INSERT INTO medico (id_usuario, nombre_apellido, dni, matricula, especialidad) VALUES
-(1, 'Dra. Ana López', '30111222', 'MP-12345', 'Clínica Médica');
+INSERT INTO medico (id_usuario, nombre_apellido, dni, matricula) VALUES
+(1, 'Dra. Ana López', '30111222', 'MP-12345');
+
+INSERT INTO medico_especialidad (id_medico, especialidad) VALUES
+(1, 'Clínica Médica');
 
 INSERT INTO paciente (id_usuario, nombre_apellido, dni, fecha_nacimiento, email, celular) VALUES
 (2, 'Juan Pérez', '32111222', '1990-02-15', 'juan@gmail.com', '1122334455');

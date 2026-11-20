@@ -126,7 +126,7 @@ public class TurnoService {
         }
 
         Medico medico = medicoRepository.findById(request.idMedico())
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe medico con el id: " + request.idMedico()));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe médico con el id: " + request.idMedico()));
         if (!medico.getActivo()) {
             throw new ConflictoException("El médico " + request.idMedico() + " está dado de baja");
         }
@@ -176,7 +176,7 @@ public class TurnoService {
 
         if (turnoRepository.existsByMedicoIdAndFechaAndHoraAndEstadoNot(
                 request.idMedico(), request.fecha(), request.hora(), EstadoTurno.CANCELADO)) {
-            throw new ConflictoException("El medico ya tiene turno asignado en ese horario");
+            throw new ConflictoException("El médico ya tiene turno asignado en ese horario");
         }
 
         Turno turno = Turno.builder()

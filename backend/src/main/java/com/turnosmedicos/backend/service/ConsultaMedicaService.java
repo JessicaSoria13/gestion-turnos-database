@@ -31,7 +31,7 @@ public class ConsultaMedicaService {
     }
     public ConsultaMedicaResponseDTO obtenerPorId(Integer id) {
         ConsultaMedica consulta = consultaMedicaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe consulta medica con el id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe consulta médica con el id: " + id));
         return toResponseDTO(consulta);
     }
 
@@ -43,7 +43,7 @@ public class ConsultaMedicaService {
             throw new ConflictoException("Solo se puede registrar una consulta a partir de un turno en estado CONFIRMADO");
         }
         if (consultaMedicaRepository.existsByTurnoId(request.idTurno())) {
-            throw new ConflictoException("El turno ya tiene una consulta medica registrada");
+            throw new ConflictoException("El turno ya tiene una consulta médica registrada");
         }
 
         ConsultaMedica consulta = ConsultaMedica.builder()

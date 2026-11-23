@@ -425,7 +425,258 @@ se crea como
 | 404 | No existe el diagnóstico o tratamiento indicado. |
 
 ---
+## Médicos
+ 
+**Criterio:** el médico es el profesional que atiende los turnos y está asociado a un usuario con
+rol ADMINISTRADOR (mismo DNI). Cualquier usuario autenticado puede consultar los médicos y sus
+horarios disponibles; crearlos, modificarlos y darlos de baja es solo del ADMINISTRADOR.
+ 
+### `GET /api/v1/medicos`
+ 
+**Descripción**
+Lista los médicos activos. Lo usan el PACIENTE (para reservar un turno) y el ADMINISTRADOR.
+ 
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Dra. Ana López",
+    "matricula": "MP-12345",
+    "especialidades": ["Clínica Médica", "Pediatría"],
+    "activo": true
+  }
+]
+```
+ 
+### `GET /api/v1/medicos/{id}`
+ 
+**Descripción**
+Obtiene un médico. Si está dado de baja, lo devuelve igual con `"activo": false`.
+ 
+**Response `200 OK`**: el médico, con el mismo formato que un elemento de `GET /api/v1/medicos`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 404 | No existe el médico con id {id}. |
+ 
+### `POST /api/v1/medicos`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Crea un médico asociado a un usuario existente con rol ADMINISTRADOR. El DNI
+del médico tiene que ser el mismo que el del usuario. `especialidades` es opcional.
+ 
+**Request Body**
+```json
+{
+  "idUsuario": 1,
+  "nombre": "Dra. Ana López",
+  "dni": "30111222",
+  "matricula": "MP-12345",
+  "especialidades": ["Clínica Médica", "Pediatría"]
+}
+```
+ 
+**Response `201 Created`**
+```json
+{
+  "id": 1,
+  "nombre": "Dra. Ana López",
+  "matricula": "MP-12345",
+  "especialidades": ["Clínica Médica", "Pediatría"],
+  "activo": true
+}
+```
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (`idUsuario` obligatorio; nombre de hasta 100 caracteres, DNI de hasta 10 y matrícula de hasta 20, los tres obligatorios). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el usuario con id {idUsuario}. |
+| 409 | El usuario {idUsuario} no tiene rol ADMINISTRADOR. |
+| 409 | El DNI del médico debe coincidir con el DNI del usuario. |
+| 409 | El usuario {idUsuario} ya tiene un médico asociado. |
+| 409 | Ya existe un médico con el DNI '{dni}'. |
+| 409 | Ya existe un médico con la matrícula '{matricula}'. |
+ 
+### `PUT /api/v1/medicos/{id}`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Actualiza nombre, matrícula y especialidades. El body es el mismo que el del
+`POST` (los campos obligatorios se validan), pero `idUsuario` y `dni` no se modifican.
+ 
+**Response `200 OK`**: el médico actualizado, con el mismo formato que `GET /api/v1/medicos/{id}`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (mismas reglas que el `POST`). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el médico con id {id}. |
+| 409 | Ya existe un médico con la matrícula '{matricula}'. |
+ 
+### `DELETE /api/v1/medicos/{id}`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Baja lógica (`activo = false`): el médico deja de aparecer en el listado.
+ 
+**Response `204 No Content`**
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el médico con id {id}. |
+ 
+### `GET /api/v1/medicos/{id}/horarios-disponibles?fecha=2026-11-25`
+ 
+**Descripción**
+Devuelve los horarios libres del médico en una fecha (formato `AAAA-MM-DD`). Se calculan a partir
+de su disponibilidad activa para ese día de la semana, en pasos de la duración del turno, y se
+quitan los horarios que ya tienen un turno no cancelado. Si la fecha está bloqueada (feriado,
+vacaciones) o el médico no atiende ese día, devuelve una lista vacía.
+ 
+**Response `200 OK`** (miércoles, disponibilidad de 09:00 a 13:00 con turnos de 30 minutos)
+```json
+["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"]
+```
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | La petición tiene un parámetro faltante, de tipo incorrecto, o el body no es JSON válido (falta `fecha` o no tiene el formato `AAAA-MM-DD`). |
+| 404 | No existe el médico con id {id}. |
+ 
+---
+
 ## Pacientes
+
+**Criterio:** el paciente es la persona que reserva turnos y está asociada a un usuario con rol
+PACIENTE (mismo DNI). El ADMINISTRADOR gestiona a todos los pacientes; un PACIENTE solo puede ver y
+modificar sus propios datos. Si intenta acceder a los de otro: `403 No podés acceder a datos de
+otro paciente`.
+ 
+### `GET /api/v1/pacientes`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Lista los pacientes activos.
+ 
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "idUsuario": 2,
+    "nombreApellido": "Juan Pérez",
+    "dni": "32111222",
+    "fechaNacimiento": "1990-02-15",
+    "email": "juan.perez@example.com",
+    "celular": "1122334455",
+    "domicilio": "Av. Siempre Viva 123",
+    "activo": true
+  }
+]
+```
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+ 
+### `GET /api/v1/pacientes/me`
+ 
+**Descripción**
+Solo PACIENTE. Devuelve los datos del paciente que inició sesión. El token trae el DNI, y con él se
+busca el paciente (por eso no lleva id en la ruta).
+ 
+**Response `200 OK`**: el paciente, con el mismo formato que un elemento de `GET /api/v1/pacientes`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol PACIENTE (mensaje `Access Denied`). |
+| 404 | No existe un paciente asociado al dni {dni}. |
+ 
+### `GET /api/v1/pacientes/{id}`
+ 
+**Descripción**
+Obtiene un paciente. El ADMINISTRADOR puede ver cualquiera; un PACIENTE, solo el suyo. Si está
+dado de baja, lo devuelve igual con `"activo": false`.
+ 
+**Response `200 OK`**: el paciente, con el mismo formato que un elemento de `GET /api/v1/pacientes`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |
+ 
+### `POST /api/v1/pacientes`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Crea un paciente asociado a un usuario existente con rol PACIENTE. El DNI del
+paciente tiene que ser el mismo que el del usuario. `email`, `celular` y `domicilio` son
+opcionales. (Un paciente nuevo se registra solo con `POST /api/v1/auth/register`, que crea el
+usuario y el paciente juntos.)
+ 
+**Request Body**
+```json
+{
+  "idUsuario": 2,
+  "nombreApellido": "Juan Pérez",
+  "dni": "32111222",
+  "fechaNacimiento": "1990-02-15",
+  "email": "juan.perez@example.com",
+  "celular": "1122334455",
+  "domicilio": "Av. Siempre Viva 123"
+}
+```
+ 
+**Response `201 Created`**: el paciente creado, con el mismo formato que un elemento de
+`GET /api/v1/pacientes`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (`idUsuario` obligatorio; nombre y apellido de hasta 100 caracteres y DNI de hasta 10, obligatorios; fecha de nacimiento obligatoria y en el pasado; email con formato válido de hasta 100; celular de hasta 20; domicilio de hasta 150). |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el usuario con id {idUsuario}. |
+| 409 | El usuario {idUsuario} no tiene rol PACIENTE. |
+| 409 | El DNI del paciente debe coincidir con el DNI del usuario. |
+| 409 | El usuario {idUsuario} ya tiene un paciente asociado. |
+| 409 | Ya existe un paciente con el DNI '{dni}'. |
+ 
+### `PUT /api/v1/pacientes/{id}`
+ 
+**Descripción**
+Actualiza nombre y apellido, email, celular y domicilio. El ADMINISTRADOR puede modificar
+cualquiera; un PACIENTE, solo el suyo. El body es el mismo que el del `POST` (los campos
+obligatorios se validan), pero `idUsuario`, `dni` y `fechaNacimiento` no se modifican.
+ 
+**Response `200 OK`**: el paciente actualizado, con el mismo formato que `GET /api/v1/pacientes/{id}`.
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Uno o más campos no son válidos (mismas reglas que el `POST`). |
+| 403 | No podés acceder a datos de otro paciente. |
+| 404 | No existe el paciente con id {id}. |
+ 
+### `DELETE /api/v1/pacientes/{id}`
+ 
+**Descripción**
+Solo ADMINISTRADOR. Baja lógica (`activo = false`): el paciente deja de aparecer en el listado.
+ 
+**Response `204 No Content`**
+ 
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el paciente con id {id}. |
+ 
 
 ### `GET /api/v1/pacientes/{id}/coberturas`
 

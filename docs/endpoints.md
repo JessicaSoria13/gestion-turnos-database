@@ -384,7 +384,85 @@ sesión. Un PACIENTE solo puede dar de baja la suya.
 
 ---
 
+## Diagnósticos
+
+Solo ADMINISTRADOR.
+
+### `GET /api/v1/diagnosticos`
+
+Lista todos los diagnósticos activos.
+
+**Response `200 OK`**
+```json
+[
+  {
+    "id": 1,
+    "idConsulta": 3,
+    "descripcion": "Faringitis aguda."
+  }
+]
+```
+
+### `GET /api/v1/diagnosticos/{id}`
+
+Obtiene un diagnóstico activo por ID.
+
+**Response `200 OK`**: un diagnóstico con el formato del listado.
+
+### `GET /api/v1/diagnosticos/consulta/{consultaId}`
+
+Lista los diagnósticos activos asociados a una consulta médica.
+
+**Response `200 OK`**: una lista de diagnósticos con el formato del listado.
+
+### `POST /api/v1/diagnosticos`
+
+Registra un diagnóstico para una consulta médica existente.
+
+**Request Body**
+```json
+{
+  "idConsulta": 3,
+  "descripcion": "Faringitis aguda."
+}
+```
+
+**Response `201 Created`**
+```json
+{
+  "id": 1,
+  "idConsulta": 3,
+  "descripcion": "Faringitis aguda."
+}
+```
+
+### `PUT /api/v1/diagnosticos/{id}`
+
+Actualiza la consulta médica asociada y la descripción del diagnóstico.
+
+**Request Body**: el mismo formato que `POST /api/v1/diagnosticos`.
+
+**Response `200 OK`**: el diagnóstico actualizado con el formato del listado.
+
+### `DELETE /api/v1/diagnosticos/{id}`
+
+Da de baja lógicamente el diagnóstico (`activo = false`); deja de aparecer en los listados.
+
+**Response `204 No Content`**
+
+**Errores**
+| Código | Mensaje |
+|---|---|
+| 400 | Datos inválidos (`idConsulta` es obligatorio y `descripcion` no puede estar vacía). |
+| 401 | No autenticado. |
+| 403 | Se requiere el rol ADMINISTRADOR. |
+| 404 | No existe el diagnóstico o la consulta médica indicada. |
+
+---
+
 ## Tratamientos
+
+Solo ADMINISTRADOR.
 
 ### `POST /api/v1/tratamientos`
 
@@ -412,16 +490,51 @@ se crea como
 }
 ```
 
-**Consultas**
-- `GET /api/v1/tratamientos`: lista todos los tratamientos.
-- `GET /api/v1/tratamientos?idDiagnostico=4`: lista los tratamientos de un diagnóstico.
-- `GET /api/v1/tratamientos/{id}`: obtiene un tratamiento.
-- `PUT /api/v1/tratamientos/{id}`: actualiza diagnóstico, descripción y duración.
+### `GET /api/v1/tratamientos`
+
+Lista los tratamientos activos. Se puede filtrar por diagnóstico con el parámetro opcional
+`idDiagnostico`.
+
+**Ejemplos**
+- `GET /api/v1/tratamientos`: lista todos los tratamientos activos.
+- `GET /api/v1/tratamientos?idDiagnostico=4`: lista los tratamientos activos del diagnóstico 4.
+
+**Response `200 OK`**: una lista de tratamientos con el formato de la respuesta de `POST`.
+
+### `GET /api/v1/tratamientos/{id}`
+
+Obtiene un tratamiento activo por ID.
+
+**Response `200 OK`**: un tratamiento con el formato de la respuesta de `POST`.
+
+### `PUT /api/v1/tratamientos/{id}`
+
+Actualiza el diagnóstico asociado, la descripción y la duración. El estado del tratamiento no se
+modifica.
+
+**Request Body**
+```json
+{
+  "idDiagnostico": 4,
+  "descripcion": "Paracetamol 500 mg cada 8 horas.",
+  "duracion": "5 días"
+}
+```
+
+**Response `200 OK`**: el tratamiento actualizado con el formato de la respuesta de `POST`.
+
+### `DELETE /api/v1/tratamientos/{id}`
+
+Da de baja lógicamente el tratamiento (`activo = false`); deja de aparecer en los listados.
+
+**Response `204 No Content`**
 
 **Errores**
 | Código | Mensaje |
 |---|---|
-| 400 | `idDiagnostico` es obligatorio y `descripcion` no puede estar vacía. |
+| 400 | Datos inválidos (`idDiagnostico` es obligatorio, `descripcion` no puede estar vacía y `duracion` admite hasta 50 caracteres). |
+| 401 | No autenticado. |
+| 403 | Se requiere el rol ADMINISTRADOR. |
 | 404 | No existe el diagnóstico o tratamiento indicado. |
 
 ---

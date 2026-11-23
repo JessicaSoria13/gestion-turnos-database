@@ -454,9 +454,10 @@ Da de baja lógicamente el diagnóstico (`activo = false`); deja de aparecer en 
 | Código | Mensaje |
 |---|---|
 | 400 | Datos inválidos (`idConsulta` es obligatorio y `descripcion` no puede estar vacía). |
-| 401 | No autenticado. |
-| 403 | Se requiere el rol ADMINISTRADOR. |
-| 404 | No existe el diagnóstico o la consulta médica indicada. |
+| 401 | Se requiere un token válido para acceder a este recurso. |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el diagnóstico con id {id}. |
+| 404 | No existe la consulta médica con id {id}. |
 
 ---
 
@@ -533,9 +534,10 @@ Da de baja lógicamente el tratamiento (`activo = false`); deja de aparecer en l
 | Código | Mensaje |
 |---|---|
 | 400 | Datos inválidos (`idDiagnostico` es obligatorio, `descripcion` no puede estar vacía y `duracion` admite hasta 50 caracteres). |
-| 401 | No autenticado. |
-| 403 | Se requiere el rol ADMINISTRADOR. |
-| 404 | No existe el diagnóstico o tratamiento indicado. |
+| 401 | Se requiere un token válido para acceder a este recurso. |
+| 403 | Sin permisos: el usuario no tiene rol ADMINISTRADOR (mensaje `Access Denied`). |
+| 404 | No existe el tratamiento con id {id}. |
+| 404 | No existe el diagnóstico con id {id}. |
 
 ---
 ## Médicos

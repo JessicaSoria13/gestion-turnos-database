@@ -11,6 +11,7 @@ import com.turnosmedicos.backend.repository.ConsultaMedicaRepository;
 import com.turnosmedicos.backend.repository.TurnoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 @Service
 
@@ -41,6 +42,10 @@ public class ConsultaMedicaService {
 
         if (turno.getEstado() != EstadoTurno.CONFIRMADO) {
             throw new ConflictoException("Solo se puede registrar una consulta a partir de un turno en estado CONFIRMADO");
+        }
+        // No se puede atender un turno antes de su fecha (el mismo día sí).
+        if (turno.getFecha().isAfter(LocalDate.now())) {
+            throw new ConflictoException("No se puede registrar la atención antes de la fecha del turno");
         }
         if (consultaMedicaRepository.existsByTurnoId(request.idTurno())) {
             throw new ConflictoException("El turno ya tiene una consulta médica registrada");

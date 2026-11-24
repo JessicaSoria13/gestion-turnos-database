@@ -242,8 +242,8 @@ Solo ADMINISTRADOR.
 ### `POST /api/v1/consultas-medicas`
 
 **Descripción**
-Registra la consulta médica de un turno. El turno tiene que estar `CONFIRMADO` y pasa
-automáticamente a `ATENDIDO`. Cada turno puede tener una sola consulta.
+Registra la consulta médica de un turno. El turno tiene que estar `CONFIRMADO`, su fecha tiene que
+ser hoy o anterior, y pasa automáticamente a `ATENDIDO`. Cada turno puede tener una sola consulta.
 
 **Request Body**
 ```json
@@ -270,6 +270,7 @@ automáticamente a `ATENDIDO`. Cada turno puede tener una sola consulta.
 | 400 | Uno o más campos no son válidos (`idTurno` es obligatorio). |
 | 404 | No existe turno con el id: {id}. |
 | 409 | Solo se puede registrar una consulta a partir de un turno en estado CONFIRMADO. |
+| 409 | No se puede registrar la atención antes de la fecha del turno. |
 | 409 | El turno ya tiene una consulta médica registrada. |
 
 **Consultas**

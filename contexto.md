@@ -169,7 +169,7 @@ Tablas: `usuario`, `paciente`, `medico`, `medico_especialidad`, `disponibilidad`
 5. El turno se crea en **CONFIRMADO**. Al cancelarlo pasa a **CANCELADO** y el horario vuelve a quedar libre.
 6. Si la cancelación la hace el médico, el **motivo es obligatorio**.
 7. Si `cobertura` es `null`, la atención es **particular**.
-8. Una **ConsultaMedica** solo se genera desde un turno **CONFIRMADO** (1–1). Al registrarla, el turno pasa a **ATENDIDO**.
+8. Una **ConsultaMedica** solo se genera desde un turno **CONFIRMADO** (1–1) y **no antes de la fecha del turno** (el mismo día sí). Al registrarla, el turno pasa a **ATENDIDO**.
 9. **Cadena clínica estricta:** no hay consulta sin turno, ni diagnóstico sin consulta, ni tratamiento sin diagnóstico.
 10. **Bloqueo:** al crearlo cancela los turnos CONFIRMADO del rango con el motivo del bloqueo. Su baja vuelve a ofrecer los horarios, **sin restaurar** los turnos cancelados.
 11. Los usuarios deben autenticarse y cada endpoint se restringe por rol.
